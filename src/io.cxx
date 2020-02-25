@@ -181,6 +181,7 @@ void Terminal::disable_out( void ) {
 	_consoleOut = INVALID_HANDLE_VALUE;
 	_autoEscape = false;
 #endif
+}
 
 void Terminal::enable_bracketed_paste( void ) {
 	static const auto BRACK_PASTE_INIT = "\033[?2004h";

@@ -104,6 +104,16 @@
 #include "replxx_impl.hxx"
 #include "history.hxx"
 
+static_assert(
+	static_cast<int>( replxx::Replxx::ACTION::SEND_EOF ) == static_cast<int>( REPLXX_ACTION_SEND_EOF ),
+	"C and C++ `ACTION` APIs are missaligned!"
+);
+
+static_assert(
+	static_cast<int>( replxx::Replxx::KEY::PASTE_FINISH ) == static_cast<int>( REPLXX_KEY_PASTE_FINISH ),
+	"C and C++ `KEY` APIs are missaligned!"
+);
+
 using namespace std;
 using namespace std::placeholders;
 using namespace replxx;

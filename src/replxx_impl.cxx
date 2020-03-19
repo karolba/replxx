@@ -810,6 +810,16 @@ void Replxx::ReplxxImpl::clear_self_to_end_of_screen( Prompt const* prompt_ ) {
 }
 
 namespace {
+
+bool case_insensitive_equal(char32_t l, char32_t r) {
+	static constexpr int delta = 'a' - 'A';
+	if (l >= 'a' && l <= 'z')
+		l -= delta;
+	if (r >= 'a' && r <= 'z')
+		r -= delta;
+	return l == r;
+}
+
 int longest_common_prefix( Replxx::ReplxxImpl::completions_t const& completions ) {
 	int completionsCount( completions.size() );
 	if ( completionsCount < 1 ) {
@@ -828,7 +838,7 @@ int longest_common_prefix( Replxx::ReplxxImpl::completions_t const& completions 
 				return ( longestCommonPrefix );
 			}
 			char32_t cc( candidate[longestCommonPrefix] );
-			if ( cc != sc ) {
+			if (!case_insensitive_equal(cc, sc)) {
 				return ( longestCommonPrefix );
 			}
 		}
@@ -1025,7 +1035,7 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 						if (!_noColor) {
 							_terminal.write32(col.get(), col.length());
 						}
-						_terminal.write32(&_data[_pos - _completionContextLength], longestCommonPrefix);
+						_terminal.write32(c.text().get(), longestCommonPrefix);
 						if (!_noColor) {
 							_terminal.write32(res.get(), res.length());
 						}

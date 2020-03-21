@@ -1536,6 +1536,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	_lastRefreshTime = 0;
 	refresh_line( _refreshSkipped ? HINT_ACTION::REGENERATE : HINT_ACTION::TRIM );
 	_history.commit_index();
+	_history.restore_scratch();
 	_history.drop_last();
 	return ( Replxx::ACTION_RESULT::RETURN );
 }
@@ -1560,6 +1561,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_move( bool previous_ ) {
 	if ( _history.is_empty() ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}
+	_history.scratch(_data);
 	if ( ! _history.move( previous_ ) ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}

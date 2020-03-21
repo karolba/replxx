@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <iostream>
 #include <chrono>
+#include <set>
 
 #ifdef _WIN32
 
@@ -895,13 +896,26 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 
 	// if we can extend the item, extend it and return to main loop
 	if ( ( longestCommonPrefix > _completionContextLength ) || ( completionsCount == 1 ) ) {
-		_pos -= _completionContextLength;
-		_data.erase( _pos, _completionContextLength );
-		_data.insert( _pos, _completions[selectedCompletion].text(), 0, longestCommonPrefix );
-		_pos = _pos + longestCommonPrefix;
-		_completionContextLength = longestCommonPrefix;
-		refresh_line();
-		return 0;
+		std::set<UnicodeString> candidates;
+		for ( int i( 0 ); i < completionsCount; ++ i ) {
+			candidates.emplace(_completions[i].text().get(), longestCommonPrefix);
+		}
+		std::optional<UnicodeString> cand;
+		// If there is a candidate with all lowercase characters, it will be the last one in the map.
+		auto & maybe_cand = *candidates.rbegin();
+        if (candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; })) {
+			cand = maybe_cand;
+		}
+		// Only extend the item when there is only one candidate prefix or one of the candidate prefix has no uppercase characters
+		if (cand) {
+			_pos -= _completionContextLength;
+			_data.erase( _pos, _completionContextLength );
+			_data.insert( _pos, *cand, 0, longestCommonPrefix );
+			_pos = _pos + longestCommonPrefix;
+			_completionContextLength = longestCommonPrefix;
+			refresh_line();
+			return 0;
+		}
 	}
 
 	if ( ! showCompletions_ ) {
@@ -1522,6 +1536,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	_lastRefreshTime = 0;
 	refresh_line( _refreshSkipped ? HINT_ACTION::REGENERATE : HINT_ACTION::TRIM );
 	_history.commit_index();
+	_history.restore_scratch();
 	_history.drop_last();
 	return ( Replxx::ACTION_RESULT::RETURN );
 }
@@ -1546,6 +1561,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_move( bool previous_ ) {
 	if ( _history.is_empty() ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}
+	_history.scratch(_data);
 	if ( ! _history.move( previous_ ) ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}

@@ -528,6 +528,8 @@ void Replxx::ReplxxImpl::render( char32_t ch ) {
 	if ( ch == Replxx::KEY::ESCAPE ) {
 		_display.push_back( '^' );
 		_display.push_back( '[' );
+	} else if ( ch == 10 ) {
+		_display.push_back( U'　' );
 	} else if ( is_control_code( ch ) ) {
 		_display.push_back( '^' );
 		_display.push_back( control_to_human( ch ) );

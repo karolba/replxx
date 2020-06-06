@@ -394,7 +394,7 @@ void highlighter_fwd( replxx_highlighter_callback_t fn, std::string const& input
 		colors.end(),
 		colorsTmp.begin(),
 		[]( replxx::Replxx::Color c ) {
-			return ( static_cast<ReplxxColor>( c ) );
+			return ( static_cast<ReplxxColor>( c.value ) );
 		}
 	);
 	fn( input.c_str(), colorsTmp.data(), colors.size(), userData );
@@ -415,7 +415,7 @@ void replxx_set_highlighter_callback( ::Replxx* replxx_, replxx_highlighter_call
 
 replxx::Replxx::hints_t hints_fwd( replxx_hint_callback_t fn, std::string const& input_, int& contextLen_, replxx::Replxx::Color& color_, void* userData ) {
 	replxx_hints hints;
-	ReplxxColor c( static_cast<ReplxxColor>( color_ ) );
+	ReplxxColor c( static_cast<ReplxxColor>( color_.value ) );
 	fn( input_.c_str(), &hints, &contextLen_, &c, userData );
 	return ( hints.data );
 }

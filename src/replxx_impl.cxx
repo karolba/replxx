@@ -146,10 +146,10 @@ Replxx::ReplxxImpl::ReplxxImpl( FILE*, FILE*, FILE* )
 	bind_key( Replxx::KEY::meta( 'F' ),                    std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::MOVE_CURSOR_ONE_WORD_RIGHT,      _1 ) );
 	bind_key( Replxx::KEY::control( Replxx::KEY::RIGHT ),  std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::MOVE_CURSOR_ONE_WORD_RIGHT,      _1 ) );
 	bind_key( Replxx::KEY::meta( Replxx::KEY::RIGHT ),     std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::MOVE_CURSOR_ONE_WORD_RIGHT,      _1 ) ); // Emacs allows Meta, readline don't
-	bind_key( Replxx::KEY::meta( Replxx::KEY::BACKSPACE ), std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_WHITESPACE_ON_LEFT,      _1 ) );
+	bind_key( Replxx::KEY::meta( Replxx::KEY::BACKSPACE ), std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_BEGINING_OF_WORD,        _1 ) );
 	bind_key( Replxx::KEY::meta( 'd' ),                    std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_END_OF_WORD,             _1 ) );
 	bind_key( Replxx::KEY::meta( 'D' ),                    std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_END_OF_WORD,             _1 ) );
-	bind_key( Replxx::KEY::control( 'W' ),                 std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_BEGINING_OF_WORD,        _1 ) );
+	bind_key( Replxx::KEY::control( 'W' ),                 std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_WHITESPACE_ON_LEFT,      _1 ) );
 	bind_key( Replxx::KEY::control( 'U' ),                 std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_BEGINING_OF_LINE,        _1 ) );
 	bind_key( Replxx::KEY::control( 'K' ),                 std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::KILL_TO_END_OF_LINE,             _1 ) );
 	bind_key( Replxx::KEY::control( 'Y' ),                 std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::YANK,                            _1 ) );

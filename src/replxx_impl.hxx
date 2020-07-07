@@ -87,6 +87,7 @@ public:
 		TRIM,
 		SKIP
 	};
+	typedef std::unordered_map<std::string, Replxx::key_press_handler_t> named_actions_t;
 	typedef Replxx::ACTION_RESULT ( ReplxxImpl::* key_press_handler_raw_t )( char32_t );
 	typedef std::unordered_map<int, Replxx::key_press_handler_t> key_press_handlers_t;
 private:
@@ -124,6 +125,7 @@ private:
 	bool _beepOnAmbiguousCompletion;
 	bool _immediateCompletion;
 	bool _noColor;
+	named_actions_t _namedActions;
 	key_press_handlers_t _keyPressHandlers;
 	Terminal _terminal;
 	std::thread::id _currentThread;
@@ -175,6 +177,7 @@ public:
 	void emulate_key_press( char32_t );
 	Replxx::ACTION_RESULT invoke( Replxx::ACTION, char32_t );
 	void bind_key( char32_t, Replxx::key_press_handler_t );
+	void bind_key_internal( char32_t, char const* );
 	Replxx::State get_state( void ) const;
 	void set_state( Replxx::State const& );
 private:

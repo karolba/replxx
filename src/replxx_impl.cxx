@@ -8,6 +8,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <optional>
 #include <io.h>
 #if _MSC_VER < 1900
 #define snprintf _snprintf // Microsoft headers use underscores in some names

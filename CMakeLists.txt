@@ -75,10 +75,11 @@ target_include_directories(
 )
 target_compile_definitions(
 	replxx
-	PRIVATE
-		$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS=1 /ignore:4503>
+	PUBLIC
 		$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:REPLXX_STATIC>
 		$<$<BOOL:${BUILD_SHARED_LIBS}>:REPLXX_BUILDING_DLL>
+	PRIVATE
+		$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS=1 /ignore:4503>
 )
 target_compile_options(
 	replxx
@@ -89,7 +90,7 @@ target_compile_options(
 		$<${coverage-config}:-O0 --coverage>
 		$<${coverage-config}:-fno-inline -fno-default-inline>
 		$<${coverage-config}:-fno-inline-small-functions>
-		$<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra>
+		$<${compiler-id-clang-or-gnu}:-Wall -Wextra>
 		$<$<CXX_COMPILER_ID:GNU>:-Wno-unknown-pragmas>
 )
 if (NOT CMAKE_VERSION VERSION_LESS 3.13)
@@ -109,6 +110,7 @@ else()
 	)
 endif()
 target_link_libraries(replxx PUBLIC Threads::Threads)
+set_target_properties(replxx PROPERTIES VERSION ${PROJECT_VERSION})
 
 set_property(TARGET replxx PROPERTY DEBUG_POSTFIX -d)
 if ( NOT BUILD_SHARED_LIBS AND MSVC )
@@ -183,7 +185,8 @@ if (REPLXX_BUILD_EXAMPLES)
 		replxx-example-c-api
 		PRIVATE
 		replxx::replxx
-		$<$<CXX_COMPILER_ID:GNU>:stdc++>
+		$<${compiler-id-clang-or-gnu}:stdc++>
+		$<${is-clang}:m>
 	)
 
 endif()

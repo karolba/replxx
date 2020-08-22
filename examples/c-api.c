@@ -165,6 +165,7 @@ int main( int argc, char** argv ) {
 			case 'u': replxx_set_unique_history( replxx, (*argv)[1] - '0' );               break;
 			case 'w': replxx_set_word_break_characters( replxx, (*argv) + 1 );             break;
 			case 'm': replxx_set_no_color( replxx, (*argv)[1] - '0' );                     break;
+			case 'B': replxx_enable_bracketed_paste( replxx );                             break;
 			case 'p': prompt = recode( (*argv) + 1 );                                      break;
 			case 'q': quiet = atoi( (*argv) + 1 );                                         break;
 			case 'M': installModifyCallback = atoi( (*argv) + 1 );                         break;
@@ -217,6 +218,10 @@ int main( int argc, char** argv ) {
 			replxx_history_scan_stop( replxx, hs );
 		} else if (!strncmp(result, "/unique", 8)) {
 			replxx_set_unique_history( replxx, 1 );
+		} else if (!strncmp(result, "/eb", 4)) {
+			replxx_enable_bracketed_paste( replxx );
+		} else if (!strncmp(result, "/db", 4)) {
+			replxx_disable_bracketed_paste( replxx );
 		}
 		if (*result != '\0') {
 			replxx_print( replxx, quiet ? "%s\n" : "thanks for the input: %s\n", result );

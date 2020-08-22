@@ -105,6 +105,16 @@
 #include "history.hxx"
 #include "io.hxx"
 
+static_assert(
+	static_cast<int>( replxx::Replxx::ACTION::SEND_EOF ) == static_cast<int>( REPLXX_ACTION_SEND_EOF ),
+	"C and C++ `ACTION` APIs are missaligned!"
+);
+
+static_assert(
+	static_cast<int>( replxx::Replxx::KEY::PASTE_FINISH ) == static_cast<int>( REPLXX_KEY_PASTE_FINISH ),
+	"C and C++ `KEY` APIs are missaligned!"
+);
+
 using namespace std;
 using namespace std::placeholders;
 using namespace replxx;
@@ -145,12 +155,12 @@ void Replxx::history_add( std::string const& line ) {
 	_impl->history_add( line );
 }
 
-void Replxx::history_save( std::string const& filename ) {
-	_impl->history_save( filename );
+bool Replxx::history_save( std::string const& filename ) {
+	return ( _impl->history_save( filename ) );
 }
 
-void Replxx::history_load( std::string const& filename ) {
-	_impl->history_load( filename );
+bool Replxx::history_load( std::string const& filename ) {
+	return ( _impl->history_load( filename ) );
 }
 
 void Replxx::history_clear( void ) {
@@ -229,6 +239,10 @@ void Replxx::bind_key( char32_t keyPress_, key_press_handler_t handler_ ) {
 	_impl->bind_key( keyPress_, handler_ );
 }
 
+void Replxx::bind_key_internal( char32_t keyPress_, char const* actionName_ ) {
+	_impl->bind_key_internal( keyPress_, actionName_ );
+}
+
 Replxx::State Replxx::get_state( void ) const {
 	return ( _impl->get_state() );
 }
@@ -243,6 +257,10 @@ int Replxx::install_window_change_handler( void ) {
 
 void Replxx::enable_bracketed_paste( void ) {
 	_impl->enable_bracketed_paste();
+}
+
+void Replxx::disable_bracketed_paste( void ) {
+	_impl->disable_bracketed_paste();
 }
 
 void Replxx::print( char const* format_, ... ) {
@@ -290,6 +308,16 @@ replxx::Replxx::ACTION_RESULT key_press_handler_forwarder( key_press_handler_t h
 void replxx_bind_key( ::Replxx* replxx_, int code_, key_press_handler_t handler_, void* userData_ ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
 	replxx->bind_key( code_, std::bind( key_press_handler_forwarder, handler_, _1, userData_ ) );
+}
+
+int replxx_bind_key_internal( ::Replxx* replxx_, int code_, char const* actionName_ ) {
+	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
+	try {
+		replxx->bind_key_internal( code_, actionName_ );
+	} catch ( ... ) {
+		return ( -1 );
+	}
+	return ( 0 );
 }
 
 void replxx_get_state( ::Replxx* replxx_, ReplxxState* state ) {
@@ -497,6 +525,16 @@ void replxx_set_unique_history( ::Replxx* replxx_, int val ) {
 	replxx->set_unique_history( val ? true : false );
 }
 
+void replxx_enable_bracketed_paste( ::Replxx* replxx_ ) {
+	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
+	replxx->enable_bracketed_paste();
+}
+
+void replxx_disable_bracketed_paste( ::Replxx* replxx_ ) {
+	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
+	replxx->disable_bracketed_paste();
+}
+
 ReplxxHistoryScan* replxx_history_scan_start( ::Replxx* replxx_ ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
 	return ( reinterpret_cast<ReplxxHistoryScan*>( replxx->history_scan().release() ) );
@@ -519,9 +557,9 @@ int replxx_history_scan_next( ::Replxx*, ReplxxHistoryScan* historyScan_, Replxx
 
 /* Save the history in the specified file. On success 0 is returned
  * otherwise -1 is returned. */
-void replxx_history_save( ::Replxx* replxx_, const char* filename ) {
+int replxx_history_save( ::Replxx* replxx_, const char* filename ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->history_save( filename );
+	return ( replxx->history_save( filename ) ? 0 : -1 );
 }
 
 /* Load the history from the specified file. If the file does not exist
@@ -529,9 +567,9 @@ void replxx_history_save( ::Replxx* replxx_, const char* filename ) {
  *
  * If the file exists and the operation succeeded 0 is returned, otherwise
  * on error -1 is returned. */
-void replxx_history_load( ::Replxx* replxx_, const char* filename ) {
+int replxx_history_load( ::Replxx* replxx_, const char* filename ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->history_load( filename );
+	return ( replxx->history_load( filename ) ? 0 : -1 );
 }
 
 void replxx_history_clear( ::Replxx* replxx_ ) {

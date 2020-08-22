@@ -184,8 +184,13 @@ void Terminal::disable_out( void ) {
 }
 
 void Terminal::enable_bracketed_paste( void ) {
-	static const auto BRACK_PASTE_INIT = "\033[?2004h";
-	write8(BRACK_PASTE_INIT, strlen(BRACK_PASTE_INIT));
+	static char const  BRACK_PASTE_INIT[] = "\033[?2004h";
+	write8( BRACK_PASTE_INIT, sizeof ( BRACK_PASTE_INIT ) - 1 );
+}
+
+void Terminal::disable_bracketed_paste( void ) {
+	static char const  BRACK_PASTE_DISABLE[] = "\033[?2004l";
+	write8( BRACK_PASTE_DISABLE, sizeof ( BRACK_PASTE_DISABLE ) - 1 );
 }
 
 int Terminal::enable_raw_mode( void ) {

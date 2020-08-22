@@ -141,8 +141,8 @@ public:
 		static char32_t const F23          = F22       + 1;
 		static char32_t const F24          = F23       + 1;
 		static char32_t const MOUSE        = F24       + 1;
-		static char32_t const BRACKETED_PASTE  = MOUSE   + 1;
-
+		static char32_t const PASTE_START  = MOUSE     + 1;
+		static char32_t const PASTE_FINISH = PASTE_START + 1;
 		static constexpr char32_t shift( char32_t key_ ) {
 			return ( key_ | BASE_SHIFT );
 		}
@@ -193,6 +193,7 @@ public:
 		VERBATIM_INSERT,
 		SUSPEND,
 #endif
+		BRACKETED_PASTE,
 		CLEAR_SCREEN,
 		CLEAR_SELF,
 		REPAINT,
@@ -467,9 +468,36 @@ public:
 	 */
 	void bind_key( char32_t code, key_press_handler_t handler );
 
+	/*! \brief Bind internal `replxx` action (by name) to handle given key-press event.
+	 *
+	 * Action names are the same as names of Replxx::ACTION enumerations
+	 * but in lower case, e.g.: an action for recalling previous history line
+	 * is \e Replxx::ACTION::HISTORY_PREVIOUS so action name to be used in this
+	 * interface for the same effect is "history_previous".
+	 *
+	 * \param code - handle this key-press event with following handler.
+	 * \param actionName - name of internal action to be invoked on key press.
+	 */
+	void bind_key_internal( char32_t code, char const* actionName );
+
 	void history_add( std::string const& line );
-	void history_save( std::string const& filename );
-	void history_load( std::string const& filename );
+
+	/*! \brief Save REPL's history into given file.
+	 *
+	 * \param filename - a path to the file where REPL's history should be saved.
+	 * \return True iff history file was successfully created.
+	 */
+	bool history_save( std::string const& filename );
+
+	/*! \brief Load REPL's history from given file.
+	 *
+	 * \param filename - a path to the file which contains REPL's history that should be loaded.
+	 * \return True iff history file was successfully opened.
+	 */
+	bool history_load( std::string const& filename );
+
+	/*! \brief Clear REPL's in-memory history.
+	 */
 	void history_clear( void );
 	int history_size( void ) const;
 	HistoryScan history_scan( void ) const;
@@ -545,6 +573,7 @@ public:
 	void clear_screen( void );
 	int install_window_change_handler( void );
 	void enable_bracketed_paste( void );
+	void disable_bracketed_paste( void );
 
 private:
 	Replxx( Replxx const& ) = delete;

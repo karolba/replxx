@@ -126,6 +126,8 @@ enum { REPLXX_KEY_F22          = REPLXX_KEY_F21       + 1 };
 enum { REPLXX_KEY_F23          = REPLXX_KEY_F22       + 1 };
 enum { REPLXX_KEY_F24          = REPLXX_KEY_F23       + 1 };
 enum { REPLXX_KEY_MOUSE        = REPLXX_KEY_F24       + 1 };
+enum { REPLXX_KEY_PASTE_START  = REPLXX_KEY_MOUSE     + 1 };
+enum { REPLXX_KEY_PASTE_FINISH = REPLXX_KEY_PASTE_START + 1 };
 
 #define REPLXX_KEY_SHIFT( key )   ( ( key ) | REPLXX_KEY_BASE_SHIFT )
 #define REPLXX_KEY_CONTROL( key ) ( ( key ) | REPLXX_KEY_BASE_CONTROL )
@@ -172,6 +174,7 @@ typedef enum {
 	REPLXX_ACTION_VERBATIM_INSERT,
 	REPLXX_ACTION_SUSPEND,
 #endif
+	REPLXX_ACTION_BRACKETED_PASTE,
 	REPLXX_ACTION_CLEAR_SCREEN,
 	REPLXX_ACTION_CLEAR_SELF,
 	REPLXX_ACTION_REPAINT,
@@ -410,6 +413,19 @@ REPLXX_IMPEXP ReplxxActionResult replxx_invoke( Replxx*, ReplxxAction action, in
  */
 REPLXX_IMPEXP void replxx_bind_key( Replxx*, int code, key_press_handler_t handler, void* userData );
 
+/*! \brief Bind internal `replxx` action (by name) to handle given key-press event.
+ *
+ * Action names are the same as unique part of names of ReplxxAction enumerations
+ * but in lower case, e.g.: an action for recalling previous history line
+ * is \e REPLXX_ACTION_HISTORY_PREVIOUS so action name to be used in this
+ * interface for the same effect is "history_previous".
+ *
+ * \param code - handle this key-press event with following handler.
+ * \param actionName - name of internal action to be invoked on key press.
+ * \return -1 if invalid action name was used, 0 otherwise.
+ */
+int replxx_bind_key_internal( Replxx*, int code, char const* actionName );
+
 REPLXX_IMPEXP void replxx_set_preload_buffer( Replxx*, const char* preloadText );
 
 REPLXX_IMPEXP void replxx_history_add( Replxx*, const char* line );
@@ -484,8 +500,23 @@ REPLXX_IMPEXP void replxx_set_max_history_size( Replxx*, int len );
 REPLXX_IMPEXP ReplxxHistoryScan* replxx_history_scan_start( Replxx* );
 REPLXX_IMPEXP void replxx_history_scan_stop( Replxx*, ReplxxHistoryScan* );
 REPLXX_IMPEXP int replxx_history_scan_next( Replxx*, ReplxxHistoryScan*, ReplxxHistoryEntry* );
-REPLXX_IMPEXP void replxx_history_save( Replxx*, const char* filename );
-REPLXX_IMPEXP void replxx_history_load( Replxx*, const char* filename );
+
+/*! \brief Save REPL's history into given file.
+ *
+ * \param filename - a path to the file where REPL's history should be saved.
+ * \return 0 iff history file was successfully created, -1 otherwise.
+ */
+REPLXX_IMPEXP int replxx_history_save( Replxx*, const char* filename );
+
+/*! \brief Load REPL's history from given file.
+ *
+ * \param filename - a path to the file which contains REPL's history that should be loaded.
+ * \return 0 iff history file was successfully opened, -1 otherwise.
+ */
+REPLXX_IMPEXP int replxx_history_load( Replxx*, const char* filename );
+
+/*! \brief Clear REPL's in-memory history.
+ */
 REPLXX_IMPEXP void replxx_history_clear( Replxx* );
 REPLXX_IMPEXP void replxx_clear_screen( Replxx* );
 #ifdef __REPLXX_DEBUG__
@@ -493,6 +524,8 @@ void replxx_debug_dump_print_codes(void);
 #endif
 /* the following is extension to the original linenoise API */
 REPLXX_IMPEXP int replxx_install_window_change_handler( Replxx* );
+REPLXX_IMPEXP void replxx_enable_bracketed_paste( Replxx* );
+REPLXX_IMPEXP void replxx_disable_bracketed_paste( Replxx* );
 
 REPLXX_IMPEXP void replxx_enable_bracketed_paste( Replxx* );
 

@@ -157,7 +157,7 @@ public:
 	}
 
 	bool ends_with( data_buffer_t::const_iterator first_, data_buffer_t::const_iterator last_ ) const {
-		auto len = std::distance( first_, last_ );
+		int len( static_cast<int>( std::distance( first_, last_ ) ) );
 		return (
 			( len <= length() )
 			&& ( std::equal( first_, last_, _data.end() - len ) )

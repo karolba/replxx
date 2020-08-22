@@ -78,8 +78,8 @@ private:
 public:
 	History( void );
 	void add( UnicodeString const& line, std::string const& when = now_ms_str() );
-	void save( std::string const& filename );
-	void load( std::string const& filename );
+	bool save( std::string const& filename );
+	bool load( std::string const& filename );
 	void clear( void );
 	void set_max_size( int len );
 	void set_unique( bool unique_ ) {
@@ -131,7 +131,7 @@ private:
 	void trim_to_max_size( void );
 	void remove_duplicate( UnicodeString const& );
 	void remove_duplicates( void );
-	void do_load( std::string const& );
+	bool do_load( std::string const& );
 	entries_t::const_iterator last( void ) const;
 	void sort( void );
 };
@@ -141,6 +141,7 @@ class Replxx::HistoryScanImpl {
 	History::entries_t::const_iterator _it;
 	mutable Utf8String _utf8Cache;
 	mutable Replxx::HistoryEntry _entryCache;
+	mutable bool _cacheValid;
 public:
 	HistoryScanImpl( History::entries_t const& );
 	bool next( void );

@@ -88,6 +88,7 @@ public:
 		TRIM,
 		SKIP
 	};
+	typedef std::unordered_map<std::string, Replxx::key_press_handler_t> named_actions_t;
 	typedef Replxx::ACTION_RESULT ( ReplxxImpl::* key_press_handler_raw_t )( char32_t );
 	typedef std::unordered_map<int, Replxx::key_press_handler_t> key_press_handlers_t;
 private:
@@ -124,7 +125,9 @@ private:
 	bool _completeOnEmpty;
 	bool _beepOnAmbiguousCompletion;
 	bool _immediateCompletion;
+	bool _bracketedPaste;
 	bool _noColor;
+	named_actions_t _namedActions;
 	key_press_handlers_t _keyPressHandlers;
 	Terminal _terminal;
 	std::thread::id _currentThread;
@@ -145,14 +148,15 @@ private:
 	mutable std::mutex _mutex;
 public:
 	ReplxxImpl( FILE*, FILE*, FILE* );
+	virtual ~ReplxxImpl( void );
 	void set_modify_callback( Replxx::modify_callback_t const& fn );
 	void set_completion_callback( Replxx::completion_callback_t const& fn );
 	void set_highlighter_callback( Replxx::highlighter_callback_t const& fn );
 	void set_hint_callback( Replxx::hint_callback_t const& fn );
 	char const* input( std::string const& prompt );
 	void history_add( std::string const& line );
-	void history_save( std::string const& filename );
-	void history_load( std::string const& filename );
+	bool history_save( std::string const& filename );
+	bool history_load( std::string const& filename );
 	void history_clear( void );
 	Replxx::HistoryScan::impl_t history_scan( void ) const;
 	int history_size( void ) const;
@@ -170,11 +174,13 @@ public:
 	void set_completion_count_cutoff( int len );
 	int install_window_change_handler( void );
 	void enable_bracketed_paste( void );
+	void disable_bracketed_paste( void );
 	void print( char const*, int );
 	Replxx::ACTION_RESULT clear_screen( char32_t );
 	void emulate_key_press( char32_t );
 	Replxx::ACTION_RESULT invoke( Replxx::ACTION, char32_t );
 	void bind_key( char32_t, Replxx::key_press_handler_t );
+	void bind_key_internal( char32_t, char const* );
 	Replxx::State get_state( void ) const;
 	void set_state( Replxx::State const& );
 private:

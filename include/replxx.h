@@ -527,8 +527,6 @@ REPLXX_IMPEXP int replxx_install_window_change_handler( Replxx* );
 REPLXX_IMPEXP void replxx_enable_bracketed_paste( Replxx* );
 REPLXX_IMPEXP void replxx_disable_bracketed_paste( Replxx* );
 
-REPLXX_IMPEXP void replxx_enable_bracketed_paste( Replxx* );
-
 #ifdef __cplusplus
 }
 #endif

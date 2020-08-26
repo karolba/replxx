@@ -202,8 +202,7 @@ public:
 		COMPLETE_PREVIOUS,
 		COMMIT_LINE,
 		ABORT_LINE,
-		SEND_EOF,
-		BRACKETED_PASTE
+		SEND_EOF
 	};
 	/*! \brief Possible results of key-press handler actions.
 	 */

@@ -621,8 +621,3 @@ int replxx_install_window_change_handler( ::Replxx* replxx_ ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
 	return ( replxx->install_window_change_handler() );
 }
-
-void replxx_enable_bracketed_paste( ::Replxx* replxx_ ) {
-	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->enable_bracketed_paste();
-}

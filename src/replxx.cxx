@@ -145,12 +145,16 @@ void Replxx::history_add( std::string const& line ) {
 	_impl->history_add( line );
 }
 
-void Replxx::history_save( std::string const& filename ) {
-	_impl->history_save( filename );
+bool Replxx::history_sync( std::string const& filename ) {
+	return ( _impl->history_sync( filename ) );
 }
 
-void Replxx::history_load( std::string const& filename ) {
-	_impl->history_load( filename );
+bool Replxx::history_save( std::string const& filename ) {
+	return ( _impl->history_save( filename ) );
+}
+
+bool Replxx::history_load( std::string const& filename ) {
+	return ( _impl->history_load( filename ) );
 }
 
 void Replxx::history_clear( void ) {
@@ -519,9 +523,16 @@ int replxx_history_scan_next( ::Replxx*, ReplxxHistoryScan* historyScan_, Replxx
 
 /* Save the history in the specified file. On success 0 is returned
  * otherwise -1 is returned. */
-void replxx_history_save( ::Replxx* replxx_, const char* filename ) {
+int replxx_history_sync( ::Replxx* replxx_, const char* filename ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->history_save( filename );
+	return ( replxx->history_sync( filename ) ? 0 : -1 );
+}
+
+/* Save the history in the specified file. On success 0 is returned
+ * otherwise -1 is returned. */
+int replxx_history_save( ::Replxx* replxx_, const char* filename ) {
+	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
+	return ( replxx->history_save( filename ) ? 0 : -1 );
 }
 
 /* Load the history from the specified file. If the file does not exist
@@ -529,9 +540,9 @@ void replxx_history_save( ::Replxx* replxx_, const char* filename ) {
  *
  * If the file exists and the operation succeeded 0 is returned, otherwise
  * on error -1 is returned. */
-void replxx_history_load( ::Replxx* replxx_, const char* filename ) {
+int replxx_history_load( ::Replxx* replxx_, const char* filename ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->history_load( filename );
+	return ( replxx->history_load( filename ) ? 0 : -1 );
 }
 
 void replxx_history_clear( ::Replxx* replxx_ ) {

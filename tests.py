@@ -1875,6 +1875,65 @@ class ReplxxTests( unittest.TestCase ):
 			)
 			self_.assertSequenceEqual( data[:-31], expected )
 			self_.assertSequenceEqual( data[-7:], ".merge\n" )
+	def test_history_save( self_ ):
+		with open( "replxx_history_alt.txt", "w" ) as f:
+			f.write(
+				"### 0000-00-00 00:00:00.001\n"
+				"one\n"
+				"### 0000-00-00 00:00:00.003\n"
+				"three\n"
+				"### 3000-00-00 00:00:00.005\n"
+				"other\n"
+				"### 3000-00-00 00:00:00.009\n"
+				"same\n"
+				"### 3000-00-00 00:00:00.017\n"
+				"seven\n"
+			)
+			f.close()
+		self_.check_scenario(
+			"zoom<cr>.save<cr><up><cr><c-d>",
+			"<c9>z<rst><ceos><c10><c9>zo<rst><ceos><c11><c9>zoo<rst><ceos><c12><c9>zoom<rst><ceos><c13><c9>zoom<rst><ceos><c13>\r\n"
+			"zoom\r\n"
+			"<brightgreen>replxx<rst>> "
+			"<c9><brightmagenta>.<rst><ceos><c10><c9><brightmagenta>.<rst>s<rst><ceos><c11><c9><brightmagenta>.<rst>sa<rst><ceos><c12><c9><brightmagenta>.<rst>sav<rst><ceos><c13><c9><brightmagenta>.<rst>save<rst><ceos><c14><c9><brightmagenta>.<rst>save<rst><ceos><c14>\r\n"
+			"<brightgreen>replxx<rst>> "
+			"<c9>zoom<rst><ceos><c13><c9>zoom<rst><ceos><c13>\r\n"
+			"zoom\r\n"
+		)
+	def test_bracketed_paste( self_ ):
+		self_.check_scenario(
+			"a0<paste-pfx>b1c2d3e<paste-sfx>4f<cr><c-d>",
+			"<c9>a<rst><ceos><c10>"
+			"<c9>a<brightmagenta>0<rst><ceos><c11>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<rst><ceos><c18>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst><ceos><c19>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst>f<rst><ceos><c20>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst>f<rst><ceos><c20>\r\n"
+			"a0b1c2d3e4f\r\n",
+			command = [ ReplxxTests._cSample_, "q1" ]
+		)
+		self_.check_scenario(
+			"a0<paste-pfx>b1c2d3e<paste-sfx>4f<cr><c-d>",
+			"<c9>a<rst><ceos><c10>"
+			"<c9>a<brightmagenta>0<rst><ceos><c11>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<rst><ceos><c18>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst><ceos><c19>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst>f<rst><ceos><c20>"
+			"<c9>a<brightmagenta>0<rst>b<brightmagenta>1<rst>c<brightmagenta>2<rst>d<brightmagenta>3<rst>e<brightmagenta>4<rst>f<rst><ceos><c20>\r\n"
+			"a0b1c2d3e4f\r\n",
+			command = [ ReplxxTests._cSample_, "q1", "B" ]
+		)
+		self_.check_scenario(
+			"a0<left><paste-pfx>/eb<paste-sfx><cr><paste-pfx>/db<paste-sfx><cr><paste-pfx>x<paste-sfx><cr><c-d>",
+			"<c9>a<rst><ceos><c10><c9>a<brightmagenta>0<rst><ceos><c11><c9>a<brightmagenta>0<rst><ceos><c10>"
+			"<c9>a/eb<brightmagenta>0<rst><ceos><c13><c9>a/eb<brightmagenta>0<rst><ceos><c14>\r\n"
+			"a/eb0\r\n"
+			"<brightgreen>replxx<rst>> <c9>/db<rst><ceos><c12><c9>/db<rst><ceos><c12>\r\n"
+			"/db\r\n"
+			"<brightgreen>replxx<rst>> <c9>x<rst><ceos><c10><c9>x<rst><ceos><c10>\r\n"
+			"x\r\n",
+			command = [ ReplxxTests._cSample_, "q1" ]
+		)
 
 def parseArgs( self, func, argv ):
 	global verbosity

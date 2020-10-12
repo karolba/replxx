@@ -468,8 +468,44 @@ public:
 	void bind_key( char32_t code, key_press_handler_t handler );
 
 	void history_add( std::string const& line );
-	void history_save( std::string const& filename );
-	void history_load( std::string const& filename );
+
+	/*! \brief Synchronize REPL's history with given file.
+	 *
+	 * Synchronizing means loading existing history from given file,
+	 * merging it with current history sorted by timestamps,
+	 * saving merged version to given file,
+	 * keeping merged version as current REPL's history.
+	 *
+	 * This call is an equivalent of calling:
+	 * history_save( "some-file" );
+	 * history_load( "some-file" );
+	 *
+	 * \param filename - a path to the file with which REPL's current history should be synchronized.
+	 * \return True iff history file was successfully created.
+	 */
+	bool history_sync( std::string const& filename );
+
+	/*! \brief Save REPL's history into given file.
+	 *
+	 * Saving means loading existing history from given file,
+	 * merging it with current history sorted by timestamps,
+	 * saving merged version to given file,
+	 * keeping original (NOT merged) version as current REPL's history.
+	 *
+	 * \param filename - a path to the file where REPL's history should be saved.
+	 * \return True iff history file was successfully created.
+	 */
+	bool history_save( std::string const& filename );
+
+	/*! \brief Load REPL's history from given file.
+	 *
+	 * \param filename - a path to the file which contains REPL's history that should be loaded.
+	 * \return True iff history file was successfully opened.
+	 */
+	bool history_load( std::string const& filename );
+
+	/*! \brief Clear REPL's in-memory history.
+	 */
 	void history_clear( void );
 	int history_size( void ) const;
 	HistoryScan history_scan( void ) const;

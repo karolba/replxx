@@ -103,7 +103,6 @@
 #include "replxx.hxx"
 #include "replxx_impl.hxx"
 #include "history.hxx"
-#include "io.hxx"
 
 using namespace std;
 using namespace std::placeholders;

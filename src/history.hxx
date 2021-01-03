@@ -132,6 +132,7 @@ private:
 	void remove_duplicate( UnicodeString const& );
 	void remove_duplicates( void );
 	bool do_load( std::string const& );
+	void add_history_line( std::string const&, std::string& );
 	entries_t::const_iterator last( void ) const;
 	void sort( void );
 	void reset_iters( void );

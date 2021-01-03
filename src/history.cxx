@@ -178,22 +178,37 @@ bool History::do_load( std::string const& filename ) {
 	if ( ! histFile ) {
 		return ( false );
 	}
-	string line;
-	string when( "0000-00-00 00:00:00.000" );
-	while ( getline( histFile, line ).good() ) {
-		string::size_type eol( line.find_first_of( "\r\n" ) );
-		if ( eol != string::npos ) {
-			line.erase( eol );
-		}
-		if ( is_timestamp( line ) ) {
-			when.assign( line, 4, std::string::npos );
+
+	string current_line;
+	string history_line;
+	string when;
+
+	while ( getline( histFile, current_line ).good() ) {
+		if ( is_timestamp( current_line ) ) {
+			add_history_line( when, history_line );
+			when.assign( current_line, 4, string::npos );
 			continue;
 		}
-		if ( ! line.empty() ) {
-			_entries.emplace_back( when, UnicodeString( line ) );
-		}
+		history_line += current_line;
+		// Delimiter for multiline history entries
+		// (that is stripped by std::getline())
+		history_line += '\n';
 	}
+	add_history_line( when, history_line );
+
 	return ( true );
+}
+void History::add_history_line( std::string const& when, std::string& history_line )
+{
+	if ( history_line.empty() ) {
+		return;
+	}
+
+	string::size_type end( history_line.find_last_not_of( "\r\n" ) );
+	history_line.resize( end+1 );
+
+	_entries.emplace_back( when, UnicodeString( history_line ) );
+	history_line.clear();
 }
 
 bool History::load( std::string const& filename ) {

@@ -141,8 +141,8 @@ public:
 		static char32_t const F23          = F22       + 1;
 		static char32_t const F24          = F23       + 1;
 		static char32_t const MOUSE        = F24       + 1;
-		static char32_t const BRACKETED_PASTE  = MOUSE   + 1;
-
+		static char32_t const PASTE_START  = MOUSE     + 1;
+		static char32_t const PASTE_FINISH = PASTE_START + 1;
 		static constexpr char32_t shift( char32_t key_ ) {
 			return ( key_ | BASE_SHIFT );
 		}
@@ -166,6 +166,8 @@ public:
 		KILL_TO_BEGINING_OF_LINE,
 		KILL_TO_END_OF_WORD,
 		KILL_TO_BEGINING_OF_WORD,
+		KILL_TO_END_OF_SUBWORD,
+		KILL_TO_BEGINING_OF_SUBWORD,
 		KILL_TO_WHITESPACE_ON_LEFT,
 		YANK,
 		YANK_CYCLE,
@@ -174,6 +176,8 @@ public:
 		MOVE_CURSOR_TO_END_OF_LINE,
 		MOVE_CURSOR_ONE_WORD_LEFT,
 		MOVE_CURSOR_ONE_WORD_RIGHT,
+		MOVE_CURSOR_ONE_SUBWORD_LEFT,
+		MOVE_CURSOR_ONE_SUBWORD_RIGHT,
 		MOVE_CURSOR_LEFT,
 		MOVE_CURSOR_RIGHT,
 		HISTORY_NEXT,
@@ -187,6 +191,9 @@ public:
 		CAPITALIZE_WORD,
 		LOWERCASE_WORD,
 		UPPERCASE_WORD,
+		CAPITALIZE_SUBWORD,
+		LOWERCASE_SUBWORD,
+		UPPERCASE_SUBWORD,
 		TRANSPOSE_CHARACTERS,
 		TOGGLE_OVERWRITE_MODE,
 #ifndef _WIN32
@@ -466,6 +473,13 @@ public:
 	 * \param handle - use this handler to handle key-press event.
 	 */
 	void bind_key( char32_t code, key_press_handler_t handler );
+
+	/*! \brief Bind internal `replxx` action (by name) to handle given key-press event.
+	 *
+	 * \param code - handle this key-press event with following handler.
+	 * \param actionName - name of internal action to be invoked on key press.
+	 */
+	void bind_key_internal( char32_t code, char const* actionName );
 
 	void history_add( std::string const& line );
 

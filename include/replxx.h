@@ -126,6 +126,8 @@ enum { REPLXX_KEY_F22          = REPLXX_KEY_F21       + 1 };
 enum { REPLXX_KEY_F23          = REPLXX_KEY_F22       + 1 };
 enum { REPLXX_KEY_F24          = REPLXX_KEY_F23       + 1 };
 enum { REPLXX_KEY_MOUSE        = REPLXX_KEY_F24       + 1 };
+enum { REPLXX_KEY_PASTE_START  = REPLXX_KEY_MOUSE     + 1 };
+enum { REPLXX_KEY_PASTE_FINISH = REPLXX_KEY_PASTE_START + 1 };
 
 #define REPLXX_KEY_SHIFT( key )   ( ( key ) | REPLXX_KEY_BASE_SHIFT )
 #define REPLXX_KEY_CONTROL( key ) ( ( key ) | REPLXX_KEY_BASE_CONTROL )
@@ -145,6 +147,8 @@ typedef enum {
 	REPLXX_ACTION_KILL_TO_BEGINING_OF_LINE,
 	REPLXX_ACTION_KILL_TO_END_OF_WORD,
 	REPLXX_ACTION_KILL_TO_BEGINING_OF_WORD,
+	REPLXX_ACTION_KILL_TO_END_OF_SUBWORD,
+	REPLXX_ACTION_KILL_TO_BEGINING_OF_SUBWORD,
 	REPLXX_ACTION_KILL_TO_WHITESPACE_ON_LEFT,
 	REPLXX_ACTION_YANK,
 	REPLXX_ACTION_YANK_CYCLE,
@@ -153,6 +157,8 @@ typedef enum {
 	REPLXX_ACTION_MOVE_CURSOR_TO_END_OF_LINE,
 	REPLXX_ACTION_MOVE_CURSOR_ONE_WORD_LEFT,
 	REPLXX_ACTION_MOVE_CURSOR_ONE_WORD_RIGHT,
+	REPLXX_ACTION_MOVE_CURSOR_ONE_SUBWORD_LEFT,
+	REPLXX_ACTION_MOVE_CURSOR_ONE_SUBWORD_RIGHT,
 	REPLXX_ACTION_MOVE_CURSOR_LEFT,
 	REPLXX_ACTION_MOVE_CURSOR_RIGHT,
 	REPLXX_ACTION_HISTORY_NEXT,
@@ -166,6 +172,9 @@ typedef enum {
 	REPLXX_ACTION_CAPITALIZE_WORD,
 	REPLXX_ACTION_LOWERCASE_WORD,
 	REPLXX_ACTION_UPPERCASE_WORD,
+	REPLXX_ACTION_CAPITALIZE_SUBWORD,
+	REPLXX_ACTION_LOWERCASE_SUBWORD,
+	REPLXX_ACTION_UPPERCASE_SUBWORD,
 	REPLXX_ACTION_TRANSPOSE_CHARACTERS,
 	REPLXX_ACTION_TOGGLE_OVERWRITE_MODE,
 #ifndef _WIN32
@@ -409,6 +418,14 @@ REPLXX_IMPEXP ReplxxActionResult replxx_invoke( Replxx*, ReplxxAction action, in
  * \param userData - supplementary user data passed to invoked handlers.
  */
 REPLXX_IMPEXP void replxx_bind_key( Replxx*, int code, key_press_handler_t handler, void* userData );
+
+/*! \brief Bind internal `replxx` action (by name) to handle given key-press event.
+ *
+ * \param code - handle this key-press event with following handler.
+ * \param actionName - name of internal action to be invoked on key press.
+ * \return -1 if invalid action name was used, 0 otherwise.
+ */
+int replxx_bind_key_internal( Replxx*, int code, char const* actionName );
 
 REPLXX_IMPEXP void replxx_set_preload_buffer( Replxx*, const char* preloadText );
 

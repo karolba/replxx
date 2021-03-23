@@ -87,6 +87,7 @@ public:
 		TRIM,
 		SKIP
 	};
+	typedef std::unordered_map<std::string, Replxx::key_press_handler_t> named_actions_t;
 	typedef Replxx::ACTION_RESULT ( ReplxxImpl::* key_press_handler_raw_t )( char32_t );
 	typedef std::unordered_map<int, Replxx::key_press_handler_t> key_press_handlers_t;
 private:
@@ -116,7 +117,8 @@ private:
 	int _lastYankSize;
 	int _maxHintRows;
 	int _hintDelay;
-	char const* _breakChars;
+	std::string _wordBreakChars;
+	std::string _subwordBreakChars;
 	int _completionCountCutoff;
 	bool _overwrite;
 	bool _doubleTabCompletion;
@@ -124,6 +126,7 @@ private:
 	bool _beepOnAmbiguousCompletion;
 	bool _immediateCompletion;
 	bool _noColor;
+	named_actions_t _namedActions;
 	key_press_handlers_t _keyPressHandlers;
 	Terminal _terminal;
 	std::thread::id _currentThread;
@@ -158,6 +161,7 @@ public:
 	int history_size( void ) const;
 	void set_preload_buffer(std::string const& preloadText);
 	void set_word_break_characters( char const* wordBreakers );
+	void set_subword_break_characters( char const* subwordBreakers );
 	void set_max_hint_rows( int count );
 	void set_hint_delay( int milliseconds );
 	void set_double_tab_completion( bool val );
@@ -175,6 +179,7 @@ public:
 	void emulate_key_press( char32_t );
 	Replxx::ACTION_RESULT invoke( Replxx::ACTION, char32_t );
 	void bind_key( char32_t, Replxx::key_press_handler_t );
+	void bind_key_internal( char32_t, char const* );
 	Replxx::State get_state( void ) const;
 	void set_state( Replxx::State const& );
 private:
@@ -189,9 +194,13 @@ private:
 	Replxx::ACTION_RESULT go_to_end_of_line( char32_t );
 	Replxx::ACTION_RESULT move_one_char_left( char32_t );
 	Replxx::ACTION_RESULT move_one_char_right( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT move_one_word_left( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT move_one_word_right( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT kill_word_to_left( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT kill_word_to_right( char32_t );
 	Replxx::ACTION_RESULT kill_to_whitespace_to_left( char32_t );
 	Replxx::ACTION_RESULT kill_to_begining_of_line( char32_t );
@@ -199,8 +208,11 @@ private:
 	Replxx::ACTION_RESULT yank( char32_t );
 	Replxx::ACTION_RESULT yank_cycle( char32_t );
 	Replxx::ACTION_RESULT yank_last_arg( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT capitalize_word( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT lowercase_word( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT uppercase_word( char32_t );
 	Replxx::ACTION_RESULT transpose_characters( char32_t );
 	Replxx::ACTION_RESULT abort_line( char32_t );
@@ -243,6 +255,7 @@ private:
 	int context_length( void );
 	void clear( void );
 	void repaint( void );
+	template <bool subword>
 	bool is_word_break_character( char32_t ) const;
 	void dynamicRefresh(Prompt& pi, char32_t* buf32, int len, int pos);
 	char const* finalize_input( char const* );

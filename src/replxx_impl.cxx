@@ -922,15 +922,6 @@ void Replxx::ReplxxImpl::clear_self_to_end_of_screen( Prompt const* prompt_ ) {
 
 namespace {
 
-bool case_insensitive_equal(char32_t l, char32_t r) {
-	static constexpr int delta = 'a' - 'A';
-	if (l >= 'a' && l <= 'z')
-		l -= delta;
-	if (r >= 'a' && r <= 'z')
-		r -= delta;
-	return l == r;
-}
-
 int longest_common_prefix( Replxx::ReplxxImpl::completions_t const& completions ) {
 	int completionsCount( completions.size() );
 	if ( completionsCount < 1 ) {
@@ -1988,7 +1979,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::incremental_history_search( char32_t s
 					if (
 						( lineSearchPos >= 0 )
 						&& ( ( lineSearchPos + dp._searchText.length() ) <= activeHistoryLine.length() )
-						&& std::equal( dp._searchText.begin(), dp._searchText.end(), activeHistoryLine.begin() + lineSearchPos )
+						&& std::equal( dp._searchText.begin(), dp._searchText.end(), activeHistoryLine.begin() + lineSearchPos, case_insensitive_equal )
 					) {
 						found = true;
 						break;

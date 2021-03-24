@@ -294,7 +294,7 @@ bool History::common_prefix_search( UnicodeString const& prefix_, int prefixSize
 	int step( back_ ? -1 : 1 );
 	entries_t::const_iterator it( moved( _current, step, true ) );
 	while ( it != _current ) {
-		if ( it->text().starts_with( prefix_.begin(), prefix_.begin() + prefixSize_ ) ) {
+		if ( it->text().starts_with( prefix_.begin(), prefix_.begin() + prefixSize_, case_insensitive_equal ) ) {
 			_current = it;
 			commit_index();
 			return ( true );

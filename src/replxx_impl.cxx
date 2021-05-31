@@ -680,7 +680,7 @@ void Replxx::ReplxxImpl::render( char32_t ch ) {
 		_display.push_back( '^' );
 		_display.push_back( '[' );
 	} else if ( ch == 10 ) {
-		_display.push_back( U'　' );
+		_display.push_back( 0x3000 /* u'　' */ );
 	} else if ( is_control_code( ch ) && ( ch != '\n' ) ) {
 		_display.push_back( '^' );
 		_display.push_back( control_to_human( ch ) );

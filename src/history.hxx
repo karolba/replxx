@@ -33,16 +33,24 @@ public:
 	class Entry {
 		std::string _timestamp;
 		UnicodeString _text;
+		mutable UnicodeString _scratch;
 	public:
 		Entry( std::string const& timestamp_, UnicodeString const& text_ )
 			: _timestamp( timestamp_ )
-			, _text( text_ ) {
+			, _text( text_ )
+			, _scratch( text_ ) {
 		}
 		std::string const& timestamp( void ) const {
 			return ( _timestamp );
 		}
 		UnicodeString const& text( void ) const {
-			return ( _text );
+			return ( _scratch );
+		}
+		void scratch( UnicodeString const& s ) const {
+			_scratch = s;
+		}
+		void restore_scratch( void ) const {
+			_scratch = _text;
 		}
 		bool operator < ( Entry const& other_ ) const {
 			return ( _timestamp < other_._timestamp );
@@ -94,6 +102,12 @@ public:
 	void drop_last( void );
 	bool is_last( void ) const;
 	bool move( bool );
+	void scratch( UnicodeString const& s ) const {
+		_current->scratch(s);
+	}
+	void restore_scratch( void ) const {
+		_current->restore_scratch();
+	}
 	UnicodeString const& current( void ) const {
 		return ( _current->text() );
 	}
@@ -138,4 +152,3 @@ public:
 }
 
 #endif
-

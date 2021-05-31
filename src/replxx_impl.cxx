@@ -3,10 +3,12 @@
 #include <cerrno>
 #include <iostream>
 #include <chrono>
+#include <set>
 
 #ifdef _WIN32
 
 #include <windows.h>
+#include <optional>
 #include <io.h>
 #if _MSC_VER < 1900
 #define snprintf _snprintf // Microsoft headers use underscores in some names
@@ -258,10 +260,10 @@ Replxx::ReplxxImpl::ReplxxImpl( FILE*, FILE*, FILE* )
 	bind_key( Replxx::KEY::meta( 'F' ),                    _namedActions.at( action_names::MOVE_CURSOR_ONE_SUBWORD_RIGHT ) );
 	bind_key( Replxx::KEY::control( Replxx::KEY::RIGHT ),  _namedActions.at( action_names::MOVE_CURSOR_ONE_WORD_RIGHT ) );
 	bind_key( Replxx::KEY::meta( Replxx::KEY::RIGHT ),     _namedActions.at( action_names::MOVE_CURSOR_ONE_WORD_RIGHT ) ); // Emacs allows Meta, readline don't
-	bind_key( Replxx::KEY::meta( Replxx::KEY::BACKSPACE ), _namedActions.at( action_names::KILL_TO_WHITESPACE_ON_LEFT ) );
+	bind_key( Replxx::KEY::meta( Replxx::KEY::BACKSPACE ), _namedActions.at( action_names::KILL_TO_BEGINING_OF_WORD ) );
 	bind_key( Replxx::KEY::meta( 'd' ),                    _namedActions.at( action_names::KILL_TO_END_OF_WORD ) );
 	bind_key( Replxx::KEY::meta( 'D' ),                    _namedActions.at( action_names::KILL_TO_END_OF_SUBWORD ) );
-	bind_key( Replxx::KEY::control( 'W' ),                 _namedActions.at( action_names::KILL_TO_BEGINING_OF_WORD ) );
+	bind_key( Replxx::KEY::control( 'W' ),                 _namedActions.at( action_names::KILL_TO_WHITESPACE_ON_LEFT ) );
 	bind_key( Replxx::KEY::meta( 'W' ),                    _namedActions.at( action_names::KILL_TO_BEGINING_OF_SUBWORD ) );
 	bind_key( Replxx::KEY::control( 'U' ),                 _namedActions.at( action_names::KILL_TO_BEGINING_OF_LINE ) );
 	bind_key( Replxx::KEY::control( 'K' ),                 _namedActions.at( action_names::KILL_TO_END_OF_LINE ) );
@@ -677,6 +679,8 @@ void Replxx::ReplxxImpl::render( char32_t ch ) {
 	if ( ch == Replxx::KEY::ESCAPE ) {
 		_display.push_back( '^' );
 		_display.push_back( '[' );
+	} else if ( ch == 10 ) {
+		_display.push_back( U'　' );
 	} else if ( is_control_code( ch ) && ( ch != '\n' ) ) {
 		_display.push_back( '^' );
 		_display.push_back( control_to_human( ch ) );
@@ -964,6 +968,16 @@ void Replxx::ReplxxImpl::clear_self_to_end_of_screen( Prompt const* prompt_ ) {
 }
 
 namespace {
+
+bool case_insensitive_equal( char32_t l, char32_t r ) {
+	static constexpr int delta = 'a' - 'A';
+	if ( l >= 'a' && l <= 'z' )
+		l -= delta;
+	if ( r >= 'a' && r <= 'z' )
+		r -= delta;
+	return l == r;
+}
+
 int longest_common_prefix( Replxx::ReplxxImpl::completions_t const& completions ) {
 	int completionsCount( static_cast<int>( completions.size() ) );
 	if ( completionsCount < 1 ) {
@@ -982,7 +996,7 @@ int longest_common_prefix( Replxx::ReplxxImpl::completions_t const& completions 
 				return ( longestCommonPrefix );
 			}
 			char32_t cc( candidate[longestCommonPrefix] );
-			if ( cc != sc ) {
+			if ( !case_insensitive_equal(cc, sc) ) {
 				return ( longestCommonPrefix );
 			}
 		}
@@ -1042,13 +1056,26 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 
 	// if we can extend the item, extend it and return to main loop
 	if ( ( longestCommonPrefix > _completionContextLength ) || ( completionsCount == 1 ) ) {
-		_pos -= _completionContextLength;
-		_data.erase( _pos, _completionContextLength );
-		_data.insert( _pos, _completions[selectedCompletion].text(), 0, longestCommonPrefix );
-		_pos = _pos + longestCommonPrefix;
-		_completionContextLength = longestCommonPrefix;
-		refresh_line();
-		return 0;
+		std::set<UnicodeString> candidates;
+		for ( int i( 0 ); i < completionsCount; ++ i ) {
+			candidates.emplace(_completions[i].text().get(), longestCommonPrefix);
+		}
+		std::optional<UnicodeString> cand;
+		// If there is a candidate with all lowercase characters, it will be the last one in the map.
+		auto & maybe_cand = *candidates.rbegin();
+        if ( candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; }) ) {
+			cand = maybe_cand;
+		}
+		// Only extend the item when there is only one candidate prefix or one of the candidate prefix has no uppercase characters
+		if ( cand ) {
+			_pos -= _completionContextLength;
+			_data.erase( _pos, _completionContextLength );
+			_data.insert( _pos, *cand, 0, longestCommonPrefix );
+			_pos = _pos + longestCommonPrefix;
+			_completionContextLength = longestCommonPrefix;
+			refresh_line();
+			return 0;
+		}
 	}
 
 	if ( ! showCompletions_ ) {
@@ -1180,11 +1207,11 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 					if ( longestCommonPrefix > 0 ) {
 						static UnicodeString const col( ansi_color( Replxx::Color::BRIGHTMAGENTA ) );
 						if (!_noColor) {
-							_terminal.write32(col.get(), col.length());
+							_terminal.write32( col.get(), col.length() );
 						}
-						_terminal.write32(&_data[_pos - _completionContextLength], longestCommonPrefix);
+						_terminal.write32( c.text().get(), longestCommonPrefix );
 						if (!_noColor) {
-							_terminal.write32(res.get(), res.length());
+							_terminal.write32( res.get(), res.length() );
 						}
 					}
 
@@ -1666,6 +1693,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	_lastRefreshTime = 0;
 	refresh_line( _refreshSkipped ? HINT_ACTION::REGENERATE : HINT_ACTION::TRIM );
 	_history.commit_index();
+	_history.restore_scratch();
 	_history.drop_last();
 	return ( Replxx::ACTION_RESULT::RETURN );
 }
@@ -1690,6 +1718,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_move( bool previous_ ) {
 	if ( _history.is_empty() ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}
+	_history.scratch(_data);
 	if ( ! _history.move( previous_ ) ) {
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}

@@ -96,6 +96,10 @@ public:
 		return ( _data != other_._data );
 	}
 
+	bool operator < ( UnicodeString const& other_ ) const {
+		return std::lexicographical_compare(begin(), end(), other_.begin(), other_.end());
+	}
+
 	UnicodeString& append( UnicodeString const& other ) {
 		_data.insert( _data.end(), other._data.begin(), other._data.end() );
 		return *this;

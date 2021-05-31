@@ -8,6 +8,15 @@
 
 namespace replxx {
 
+inline bool case_insensitive_equal(char32_t l, char32_t r) {
+	static constexpr int delta = 'a' - 'A';
+	if (l >= 'a' && l <= 'z')
+		l -= delta;
+	if (r >= 'a' && r <= 'z')
+		r -= delta;
+	return l == r;
+}
+
 class UnicodeString {
 public:
 	typedef std::vector<char32_t> data_buffer_t;
@@ -162,6 +171,14 @@ public:
 		return (
 			( std::distance( first_, last_ ) <= length() )
 			&& ( std::equal( first_, last_, _data.begin() ) )
+		);
+	}
+
+	template <class BinaryPredicate>
+	bool starts_with( data_buffer_t::const_iterator first_, data_buffer_t::const_iterator last_, BinaryPredicate && pred ) const {
+		return (
+			( std::distance( first_, last_ ) <= length() )
+			&& ( std::equal( first_, last_, _data.begin(), std::forward<BinaryPredicate>(pred) ) )
 		);
 	}
 

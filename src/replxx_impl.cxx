@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <memory>
 #include <cerrno>
+#include <cassert>
 #include <iostream>
 #include <chrono>
 #include <set>
+#include <optional>
 
 #ifdef _WIN32
 
@@ -1004,7 +1006,7 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 		std::optional<UnicodeString> cand;
 		// If there is a candidate with all lowercase characters, it will be the last one in the map.
 		auto & maybe_cand = *candidates.rbegin();
-        if (candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; })) {
+		if (candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; })) {
 			cand = maybe_cand;
 		}
 		// Only extend the item when there is only one candidate prefix or one of the candidate prefix has no uppercase characters
@@ -1993,6 +1995,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::incremental_history_search( char32_t s
 					activeHistoryLine.assign( _history.current() );
 					lineSearchPos = ( dp._direction > 0 ) ? 0 : ( activeHistoryLine.length() - dp._searchText.length() );
 				} else {
+					historyLinePosition = 0;
 					beep();
 					break;
 				}
@@ -2177,6 +2180,8 @@ void Replxx::ReplxxImpl::set_no_color( bool val ) {
  * @param pos   current cursor position within the buffer (0 <= pos <= len)
  */
 void Replxx::ReplxxImpl::dynamicRefresh(Prompt& pi, char32_t* buf32, int len, int pos) {
+	assert(pos >= 0 && pos <= len);
+
 	clear_self_to_end_of_screen( &pi );
 	// calculate the position of the end of the prompt
 	int xEndOfPrompt, yEndOfPrompt;

@@ -1005,7 +1005,7 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 		std::optional<UnicodeString> cand;
 		// If there is a candidate with all lowercase characters, it will be the last one in the map.
 		auto & maybe_cand = *candidates.rbegin();
-        if (candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; })) {
+		if (candidates.size() == 1 || std::none_of(maybe_cand.begin(), maybe_cand.end(), [&](auto c) { return c >= 'A' && c <= 'Z'; })) {
 			cand = maybe_cand;
 		}
 		// Only extend the item when there is only one candidate prefix or one of the candidate prefix has no uppercase characters

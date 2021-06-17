@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <memory>
 #include <cerrno>
+#include <cassert>
 #include <iostream>
 #include <chrono>
 #include <set>
@@ -2178,6 +2179,8 @@ void Replxx::ReplxxImpl::set_no_color( bool val ) {
  * @param pos   current cursor position within the buffer (0 <= pos <= len)
  */
 void Replxx::ReplxxImpl::dynamicRefresh(Prompt& pi, char32_t* buf32, int len, int pos) {
+	assert(pos >= 0 && pos <= len);
+
 	clear_self_to_end_of_screen( &pi );
 	// calculate the position of the end of the prompt
 	int xEndOfPrompt, yEndOfPrompt;

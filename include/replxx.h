@@ -86,6 +86,12 @@ typedef enum {
 	REPLXX_COLOR_DEFAULT       = 1u << 16u
 } ReplxxColor;
 
+typedef enum {
+	REPLXX_STDIN  = 0,
+	REPLXX_STDOUT = 1,
+	REPLXX_STDERR = 2
+} ReplxxStdFile;
+
 enum { REPLXX_KEY_BASE         = 0x0010ffff + 1 };
 enum { REPLXX_KEY_BASE_SHIFT   = 0x01000000 };
 enum { REPLXX_KEY_BASE_CONTROL = 0x02000000 };
@@ -401,6 +407,23 @@ REPLXX_IMPEXP void replxx_set_state( Replxx*, ReplxxState* state );
  */
 REPLXX_IMPEXP void replxx_set_ignore_case( Replxx*, int val );
 
+/*! \brief Print formatted string to standard output / error channel.
+ *
+ * This function ensures proper handling of ANSI escape sequences
+ * contained in printed data, which is especially useful on Windows
+ * since Unixes handle them correctly out of the box.
+ *
+ * \param channel - identifies thew output channel to write to.
+ * \param fmt     - printf style format.
+ * \param ap      - va_list containing varargs to be formatted
+ */
+REPLXX_IMPEXP int replxx_vfprint( Replxx*, ReplxxStdFile channel, char const* fmt, va_list ap );
+
+/*! \brief Print formatted string to standard output/error channel, vararg version
+ * \see replxx_vfprint
+ */
+REPLXX_IMPEXP int replxx_fprint( Replxx*, ReplxxStdFile channel, char const* fmt, ... );
+
 /*! \brief Print formatted string to standard output.
  *
  * This function ensures proper handling of ANSI escape sequences
@@ -410,8 +433,7 @@ REPLXX_IMPEXP void replxx_set_ignore_case( Replxx*, int val );
  * \param fmt - printf style format.
  * \param ap  - va_list containing varargs to be formatted
  */
-REPLXX_IMPEXP int replxx_vprint( Replxx*, char const* fmt, va_list ap);
-
+REPLXX_IMPEXP int replxx_vprint( Replxx*, char const* fmt, va_list ap );
 
 /*! \brief Print formatted string to standard output, vararg version
  * \see replxx_vprint

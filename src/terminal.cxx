@@ -37,7 +37,6 @@ static DWORD const ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 #include "terminal.hxx"
 #include "conversion.hxx"
 #include "escape.hxx"
-#include "replxx.hxx"
 #include "util.hxx"
 
 using namespace std;
@@ -86,8 +85,10 @@ static void WindowSizeChanged( int ) {
 Terminal::Terminal( void )
 #ifdef _WIN32
 	: _consoleOut( INVALID_HANDLE_VALUE )
+	, _consoleErr( INVALID_HANDLE_VALUE )
 	, _consoleIn( INVALID_HANDLE_VALUE )
 	, _origOutMode()
+	, _origErrMode()
 	, _origInMode()
 	, _oldDisplayAttribute()
 	, _inputCodePage( GetConsoleCP() )
@@ -128,23 +129,50 @@ void Terminal::write32( char32_t const* text32, int len32 ) {
 }
 
 void Terminal::write8( char const* data_, int size_ ) {
+	write8( Replxx::StdFile::STDOUT, data_, size_ );
+}
+
+void Terminal::write8( Replxx::StdFile std_, char const* data_, int size_ ) {
+	int nWritten = 0;
+
 #ifdef _WIN32
 	bool temporarilyEnabled( false );
 	if ( _consoleOut == INVALID_HANDLE_VALUE ) {
 		enable_out();
 		temporarilyEnabled = true;
 	}
-	int nWritten( win_write( _consoleOut, _autoEscape, data_, size_ ) );
+	
+	switch( std_ ) {
+	case Replxx::StdFile::STDOUT: 
+		nWritten = win_write( _consoleOut, _autoEscape, data_, size_ );
+		break;
+	case Replxx::StdFile::STDERR:
+		nWritten = win_write( _consoleErr, _autoEscape, data_, size_ );
+		break;
+	default:
+		throw std::runtime_error( "Invalid standard file" );
+	}
+
+
 	if ( temporarilyEnabled ) {
 		disable_out();
 	}
 #else
-	int nWritten( write( 1, data_, size_ ) );
+	switch( std_ ) {
+	case Replxx::StdFile::STDOUT: 
+		nWritten = write( STDOUT_FILENO, data_, size_ );
+		break;
+	case Replxx::StdFile::STDERR:
+		nWritten = write( STDERR_FILENO, data_, size_ );
+		break;
+	default:
+		throw std::runtime_error( "Invalid standard file" );
+	}
 #endif
+
 	if ( nWritten != size_ ) {
 		throw std::runtime_error( "write failed" );
 	}
-	return;
 }
 
 int Terminal::get_screen_columns( void ) {
@@ -185,17 +213,27 @@ inline int notty( void ) {
 void Terminal::enable_out( void ) {
 #ifdef _WIN32
 	SetConsoleOutputCP( 65001 );
+<<<<<<< HEAD:src/terminal.cxx
+=======
+
+>>>>>>> 959ed28 (Support for stderr WIP):src/io.cxx
 	_consoleOut = GetStdHandle( STD_OUTPUT_HANDLE );
 	GetConsoleMode( _consoleOut, &_origOutMode );
 	_autoEscape = SetConsoleMode( _consoleOut, _origOutMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING ) != 0;
+
+	_consoleErr = GetStdHandle(STD_ERROR_HANDLE);
+	GetConsoleMode( _consoleErr, &_origErrMode );
+	_autoEscape &= SetConsoleMode( _consoleErr, _origOutMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING ) != 0;
 #endif
 }
 
 void Terminal::disable_out( void ) {
 #ifdef _WIN32
-	SetConsoleMode( _consoleOut, _origOutMode );
 	SetConsoleOutputCP( _outputCodePage );
+	SetConsoleMode( _consoleOut, _origOutMode );
+	SetConsoleMode( _consoleErr, _origErrMode );
 	_consoleOut = INVALID_HANDLE_VALUE;
+	_consoleErr = INVALID_HANDLE_VALUE;
 	_autoEscape = false;
 #endif
 }

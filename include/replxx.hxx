@@ -86,6 +86,11 @@ public:
 		ERROR         = -2,
 		//CUSTOM        = -3,
 	};
+	enum class StdFile {
+		STDIN  = 0,
+		STDOUT = 1,
+		STDERR = 2
+	};
 	struct KEY {
 		static char32_t const BASE         = 0x0010ffff + 1;
 		static char32_t const BASE_SHIFT   = 0x01000000;

@@ -427,22 +427,36 @@ char const* replxx_input( ::Replxx* replxx_, const char* prompt ) {
 	return ( replxx->input( prompt ) );
 }
 
-int replxx_print( ::Replxx* replxx_, char const* format_, ... ) {
+int replxx_vprint( ::Replxx* replxx_, char const* format_, ::std::va_list ap) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	::std::va_list ap;
-	va_start( ap, format_ );
-	int size = static_cast<int>( vsnprintf( nullptr, 0, format_, ap ) );
-	va_end( ap );
-	va_start( ap, format_ );
+
+	::std::va_list cpy;
+
+	va_copy(cpy, ap);
+	int size = static_cast<int>( vsnprintf( nullptr, 0, format_, cpy ) );
+	va_end(cpy);
+
 	unique_ptr<char[]> buf( new char[size + 1] );
-	vsnprintf( buf.get(), static_cast<size_t>( size + 1 ), format_, ap );
-	va_end( ap );
+	
+	va_copy(cpy, ap);
+	vsnprintf( buf.get(), static_cast<size_t>( size + 1), format_, cpy);
+	va_end(cpy);
+
 	try {
 		replxx->print( buf.get(), size );
-	} catch ( ... ) {
-		return ( -1 );
+	} catch( ... ) {
+		return -1;
 	}
-	return ( size );
+	
+	return size;
+}
+
+int replxx_print( ::Replxx* replxx_, char const* format_, ... ) {
+	::std::va_list args;
+	va_start( args, format_ );
+	int size = replxx_vprint( replxx_, format_, args);
+	va_end( args );
+	return size;
 }
 
 int replxx_write( ::Replxx* replxx_, char const* str, int length ) {

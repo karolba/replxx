@@ -44,6 +44,8 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
+
 /*
  * For use in Windows DLLs:
  *
@@ -406,6 +408,13 @@ REPLXX_IMPEXP void replxx_set_ignore_case( Replxx*, int val );
  * since Unixes handle them correctly out of the box.
  *
  * \param fmt - printf style format.
+ * \param ap  - va_list containing varargs to be formatted
+ */
+REPLXX_IMPEXP int replxx_vprint( Replxx*, char const* fmt, va_list ap);
+
+
+/*! \brief Print formatted string to standard output, vararg version
+ * \see replxx_vprint
  */
 REPLXX_IMPEXP int replxx_print( Replxx*, char const* fmt, ... );
 

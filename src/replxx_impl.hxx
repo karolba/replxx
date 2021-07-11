@@ -131,7 +131,9 @@ private:
 	bool _indentMultiline;
 	named_actions_t _namedActions;
 	key_press_handlers_t _keyPressHandlers;
-	Terminal _terminal;
+public:
+	Terminal _terminal; // TODO: private again
+private:
 	std::thread::id _currentThread;
 	Prompt _prompt;
 	Replxx::modify_callback_t _modifyCallback;

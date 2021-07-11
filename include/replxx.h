@@ -86,6 +86,12 @@ typedef enum {
 	REPLXX_COLOR_DEFAULT       = 1u << 16u
 } ReplxxColor;
 
+typedef enum {
+	REPLXX_STDIN  = 0,
+	REPLXX_STDOUT = 1,
+	REPLXX_STDERR = 2
+} ReplxxStdFile;
+
 enum { REPLXX_KEY_BASE         = 0x0010ffff + 1 };
 enum { REPLXX_KEY_BASE_SHIFT   = 0x01000000 };
 enum { REPLXX_KEY_BASE_CONTROL = 0x02000000 };
@@ -400,6 +406,9 @@ REPLXX_IMPEXP void replxx_set_state( Replxx*, ReplxxState* state );
  * \param val - if set to non-zero then history search and completion will be case insensitive.
  */
 REPLXX_IMPEXP void replxx_set_ignore_case( Replxx*, int val );
+REPLXX_IMPEXP int replxx_vfprint( Replxx*, ReplxxStdFile, char const* fmt, va_list ap );
+
+REPLXX_IMPEXP int replxx_fprint( Replxx*, ReplxxStdFile, char const* fmt, ... );
 
 /*! \brief Print formatted string to standard output.
  *

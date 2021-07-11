@@ -427,7 +427,7 @@ char const* replxx_input( ::Replxx* replxx_, const char* prompt ) {
 	return ( replxx->input( prompt ) );
 }
 
-int replxx_vprint( ::Replxx* replxx_, char* const format_, va_list ap) {
+int replxx_vprint( ::Replxx* replxx_, char const* format_, ::std::va_list ap) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
 
 	::std::va_list cpy;

@@ -477,8 +477,8 @@ char32_t Replxx::ReplxxImpl::read_char( HINT_ACTION hintAction_ ) {
 		}
 
 		while ( ! _messages.empty() ) {
-			string const& message( _messages.front() );
-			_terminal.write8( message.data(), static_cast<int>( message.length() ) );
+			const std::pair<Replxx::StdFile, std::string>& msg = _messages.front();
+			_terminal.write8( msg.first, msg.second.data(), static_cast<int>( msg.second.length() ) );
 			_messages.pop_front();
 		}
 		_lastRefreshTime = 0;
@@ -705,12 +705,16 @@ void Replxx::ReplxxImpl::disable_bracketed_paste( void ) {
 }
 
 void Replxx::ReplxxImpl::print( char const* str_, int size_ ) {
+	print(Replxx::StdFile::STDOUT, str_, size_);
+}
+
+void Replxx::ReplxxImpl::print( Replxx::StdFile std_, char const* str_, int size_ ) {
 	std::unique_lock<std::mutex> l( _mutex );
 	if ( ( _currentThread == std::thread::id() ) || ( _currentThread == std::this_thread::get_id() ) ) {
 #ifndef _WIN32
 		l.unlock();
 #endif
-		_terminal.write8( str_, size_ );
+		_terminal.write8( std_, str_, size_ );
 	} else {
 		_messages.emplace_back( str_, size_ );
 		_terminal.notify_event( Terminal::EVENT_TYPE::MESSAGE );

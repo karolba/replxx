@@ -36,6 +36,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <thread>
 #include <mutex>
 #include <chrono>
@@ -81,7 +82,7 @@ public:
 	typedef std::unique_ptr<char32_t[]> input_buffer_t;
 	typedef std::vector<char32_t> display_t;
 	typedef std::deque<char32_t> key_presses_t;
-	typedef std::deque<std::string> messages_t;
+	typedef std::deque<std::pair<Replxx::StdFile, std::string>> messages_t;
 	enum class HINT_ACTION {
 		REGENERATE,
 		REPAINT,
@@ -131,9 +132,7 @@ private:
 	bool _indentMultiline;
 	named_actions_t _namedActions;
 	key_press_handlers_t _keyPressHandlers;
-public:
-	Terminal _terminal; // TODO: private again
-private:
+	Terminal _terminal;
 	std::thread::id _currentThread;
 	Prompt _prompt;
 	Replxx::modify_callback_t _modifyCallback;
@@ -196,6 +195,7 @@ public:
 	void disable_bracketed_paste( void );
 	void print( char const*, int );
 	void set_prompt( std::string prompt );
+	void print(Replxx::StdFile, char const*, int);
 	Replxx::ACTION_RESULT clear_screen( char32_t );
 	void emulate_key_press( char32_t );
 	Replxx::ACTION_RESULT invoke( Replxx::ACTION, char32_t );

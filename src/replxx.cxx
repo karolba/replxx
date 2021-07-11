@@ -443,9 +443,7 @@ int replxx_vfprint( ::Replxx* replxx_, ::ReplxxStdFile std_, char const* format_
 	va_end(cpy);
 
 	try {
-		// TODO: modify Replxx::print
-		replxx->_terminal.write8( static_cast<replxx::Replxx::StdFile>(std_), buf.get(), size);
-		// replxx->print( buf.get(), size );
+		replxx->print( static_cast<replxx::Replxx::StdFile>(std_), buf.get(), size);
 	} catch( ... ) {
 		return -1;
 	}

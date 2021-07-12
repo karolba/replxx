@@ -632,6 +632,10 @@ public:
 	 * \param val - if set to true then multiline indent will be enabled.
 	 */
 	void set_indent_multiline( bool val );
+	
+	/*! \brief Returns whether or not output coloring is enabled.
+	 */
+	bool is_color_enabled();
 
 	/*! \brief Set maximum number of entries in history list.
 	 */

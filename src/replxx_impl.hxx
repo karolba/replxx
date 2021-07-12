@@ -188,6 +188,7 @@ public:
 	void set_unique_history( bool );
 	void set_no_color( bool val );
 	void set_indent_multiline( bool val );
+	bool is_color_enabled();
 	void set_max_history_size( int len );
 	void set_completion_count_cutoff( int len );
 	int install_window_change_handler( void );

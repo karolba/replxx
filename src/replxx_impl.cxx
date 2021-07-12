@@ -2531,6 +2531,10 @@ void Replxx::ReplxxImpl::set_indent_multiline( bool val ) {
 	_indentMultiline = val;
 }
 
+bool Replxx::ReplxxImpl::is_color_enabled() {
+	return !_noColor;
+}
+
 /**
  * Display the dynamic incremental search prompt and the current user input
  * line.

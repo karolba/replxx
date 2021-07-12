@@ -45,6 +45,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 /*
  * For use in Windows DLLs:
@@ -554,6 +555,11 @@ REPLXX_IMPEXP void replxx_set_no_color( Replxx*, int val );
  * \param val - if set to non-zero then multiline indent will be enabled.
  */
 REPLXX_IMPEXP void replxx_set_indent_multiline( Replxx*, int val );
+
+/*! \brief Returns whether or not output coloring is enabled.
+*/
+REPLXX_IMPEXP bool is_color_enabled( Replxx* );
+
 
 /*! \brief Set maximum number of entries in history list.
  */

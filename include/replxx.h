@@ -558,7 +558,7 @@ REPLXX_IMPEXP void replxx_set_indent_multiline( Replxx*, int val );
 
 /*! \brief Returns whether or not output coloring is enabled.
 */
-REPLXX_IMPEXP bool is_color_enabled( Replxx* );
+REPLXX_IMPEXP bool replxx_is_color_enabled( Replxx* );
 
 
 /*! \brief Set maximum number of entries in history list.

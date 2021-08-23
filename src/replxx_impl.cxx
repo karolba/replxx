@@ -1995,7 +1995,6 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::incremental_history_search( char32_t s
 					activeHistoryLine.assign( _history.current() );
 					lineSearchPos = ( dp._direction > 0 ) ? 0 : ( activeHistoryLine.length() - dp._searchText.length() );
 				} else {
-					historyLinePosition = 0;
 					beep();
 					break;
 				}

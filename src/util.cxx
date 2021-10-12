@@ -161,6 +161,7 @@ char const* ansi_color( Replxx::Color color_ ) {
 		case Replxx::Color::BRIGHTCYAN:    code = brightcyan;    break;
 		case Replxx::Color::WHITE:         code = white;         break;
 		case Replxx::Color::INTENSE:       code = intense;       break;
+#undef ERROR
 		case Replxx::Color::ERROR:         code = error;         break;
 		case Replxx::Color::DEFAULT:       code = reset;         break;
 		case Replxx::Color::CUSTOM:        code = color_.custom_code; break;

@@ -223,7 +223,7 @@ void hook_color( std::string const& context, Replxx::colors_t& colors, syntax_hi
 
 void hook_modify( std::string& currentInput_, int&, Replxx* rx ) {
 	char prompt[64];
-	snprintf( prompt, 64, "\x1b[1;32mreplxx\x1b[0m[%lu]> ", currentInput_.length() );
+	snprintf( prompt, 64, "\x1b[1;32mreplxx\x1b[0m[%lu]> ", (unsigned long)currentInput_.length() );
 	rx->set_prompt( prompt );
 }
 

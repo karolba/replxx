@@ -131,6 +131,7 @@ char const* ansi_color( Replxx::Color color_ ) {
 	if ( data < static_cast<int>( Replxx::Color::BLACK ) ) {
 		static char const reset[] = "\033[0m";
 		static char const error[] = "\033[101;1;33m";
+#undef ERROR
 		snprintf( colorBuffer, MAX_COLOR_CODE_SIZE, "%s",  data == static_cast<int>( Replxx::Color::ERROR ) ? error : reset );
 		return colorBuffer;
 	} else if ( fg <= static_cast<int>( Replxx::Color::LIGHTGRAY ) ) {

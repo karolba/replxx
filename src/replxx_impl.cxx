@@ -642,7 +642,14 @@ char const* Replxx::ReplxxImpl::input( std::string const& prompt ) {
 }
 
 char const* Replxx::ReplxxImpl::finalize_input( char const* retVal_ ) {
-	std::lock_guard<std::mutex> l( _mutex );
+	std::unique_lock<std::mutex> l( _mutex );
+	while ( ! _messages.empty() ) {
+		string const& message( _messages.front() );
+		l.unlock();
+		_terminal.write8( message.data(), static_cast<int>( message.length() ) );
+		l.lock();
+		_messages.pop_front();
+	}
 	_currentThread = std::thread::id();
 	_terminal.disable_raw_mode();
 	return ( retVal_ );
@@ -685,8 +692,13 @@ void Replxx::ReplxxImpl::print( char const* str_, int size_ ) {
 }
 
 void Replxx::ReplxxImpl::set_prompt( std::string prompt ) {
-	std::lock_guard<std::mutex> l( _mutex );
-	if ( ( _currentThread != std::thread::id() ) && ( _currentThread != std::this_thread::get_id() ) ) {
+	std::unique_lock<std::mutex> l( _mutex );
+	if ( _currentThread == std::this_thread::get_id() ) {
+		_prompt.set_text( UnicodeString( prompt ) );
+		l.unlock();
+		clear_self_to_end_of_screen();
+		repaint();
+	} else if ( _currentThread != std::thread::id() ) {
 		_asyncPrompt = std::move( prompt );
 		_updatePrompt = true;
 		_terminal.notify_event( Terminal::EVENT_TYPE::MESSAGE );

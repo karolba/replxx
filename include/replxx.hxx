@@ -638,6 +638,15 @@ private:
 	Replxx& operator = ( Replxx const& ) = delete;
 };
 
+namespace color {
+
+Replxx::Color operator | ( Replxx::Color, Replxx::Color );
+Replxx::Color bg( Replxx::Color );
+Replxx::Color grayscale( int );
+Replxx::Color rgb666( int, int, int );
+
+}
+
 }
 
 #endif /* HAVE_REPLXX_HXX_INCLUDED */

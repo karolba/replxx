@@ -79,7 +79,9 @@ public:
 	History( void );
 	void add( UnicodeString const& line, std::string const& when = now_ms_str() );
 	bool save( std::string const& filename, bool );
+	void save( std::ostream& histFile );
 	bool load( std::string const& filename );
+	void load( std::istream& histFile );
 	void clear( void );
 	void set_max_size( int len );
 	void set_unique( bool unique_ ) {
@@ -131,7 +133,7 @@ private:
 	void trim_to_max_size( void );
 	void remove_duplicate( UnicodeString const& );
 	void remove_duplicates( void );
-	bool do_load( std::string const& );
+	void do_load( std::istream& );
 	void add_history_line( std::string const&, std::string& );
 	entries_t::const_iterator last( void ) const;
 	void sort( void );

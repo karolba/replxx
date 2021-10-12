@@ -763,3 +763,4 @@ int Terminal::install_window_change_handler( void ) {
 #endif
 
 }
+

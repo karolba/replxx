@@ -133,11 +133,10 @@ class IOModeGuard {
 public:
 	IOModeGuard( Terminal& terminal_ )
 		: _terminal( terminal_ ) {
-		_terminal.disable_raw_mode();
 	}
 	~IOModeGuard( void ) {
 		try {
-			_terminal.enable_raw_mode();
+			_terminal.reset_raw_mode();
 		} catch ( ... ) {
 		}
 	}
@@ -344,10 +343,10 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::invoke( Replxx::ACTION action_, char32
 		case ( Replxx::ACTION::MOVE_CURSOR_ONE_SUBWORD_RIGHT ):   return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_word_right<true>, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_LEFT ):                return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_char_left, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_RIGHT ):               return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_char_right, code ) );
-		case ( Replxx::ACTION::HISTORY_NEXT ):                    return ( action( RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_next, code ) );
-		case ( Replxx::ACTION::HISTORY_PREVIOUS ):                return ( action( RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_previous, code ) );
-		case ( Replxx::ACTION::HISTORY_FIRST ):                   return ( action( RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_first, code ) );
-		case ( Replxx::ACTION::HISTORY_LAST ):                    return ( action( RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_last, code ) );
+		case ( Replxx::ACTION::HISTORY_NEXT ):                    return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_next, code ) );
+		case ( Replxx::ACTION::HISTORY_PREVIOUS ):                return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_previous, code ) );
+		case ( Replxx::ACTION::HISTORY_FIRST ):                   return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_first, code ) );
+		case ( Replxx::ACTION::HISTORY_LAST ):                    return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::history_last, code ) );
 		case ( Replxx::ACTION::HISTORY_INCREMENTAL_SEARCH ):      return ( action( NOOP, &Replxx::ReplxxImpl::incremental_history_search, code ) );
 		case ( Replxx::ACTION::HISTORY_COMMON_PREFIX_SEARCH ):    return ( action( RESET_KILL_ACTION | DONT_RESET_PREFIX, &Replxx::ReplxxImpl::common_prefix_search, code ) );
 		case ( Replxx::ACTION::HINT_NEXT ):                       return ( action( NOOP, &Replxx::ReplxxImpl::hint_next, code ) );
@@ -780,7 +779,8 @@ void Replxx::ReplxxImpl::handle_hints( HINT_ACTION hintAction_ ) {
 			set_color( Replxx::Color::DEFAULT );
 		}
 	} else if ( ( _maxHintRows > 0 ) && ( hintCount > 0 ) ) {
-		int startCol( _prompt.indentation() + _pos );
+		int posInLine( pos_in_line() );
+		int startCol( ( posInLine == _pos ? _prompt.indentation() : 0 ) + posInLine );
 		int maxCol( _prompt.screen_columns() );
 #ifdef _WIN32
 		-- maxCol;
@@ -1729,7 +1729,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	return ( Replxx::ACTION_RESULT::RETURN );
 }
 
-int Replxx::ReplxxImpl::prev_newline_position( int pos_ ) {
+int Replxx::ReplxxImpl::prev_newline_position( int pos_ ) const {
 	assert( ( pos_ >= 0 ) && ( pos_ <= _data.length() ) );
 	if ( pos_ == _data.length() ) {
 		-- pos_;
@@ -1743,7 +1743,7 @@ int Replxx::ReplxxImpl::prev_newline_position( int pos_ ) {
 	return ( pos_ );
 }
 
-int Replxx::ReplxxImpl::next_newline_position( int pos_ ) {
+int Replxx::ReplxxImpl::next_newline_position( int pos_ ) const {
 	assert( ( pos_ >= 0 ) && ( pos_ <= _data.length() ) );
 	int len( _data.length() );
 	while ( pos_ < len ) {
@@ -1753,6 +1753,14 @@ int Replxx::ReplxxImpl::next_newline_position( int pos_ ) {
 		++ pos_;
 	}
 	return ( pos_ < len ? pos_ : -1 );
+}
+
+int Replxx::ReplxxImpl::pos_in_line( void ) const {
+	if ( ! _hasNewlines ) {
+		return ( _pos );
+	}
+	int lineStart( prev_newline_position( _pos ) + 1 );
+	return ( _pos - lineStart );
 }
 
 // Up, recall previous line in history
@@ -1776,7 +1784,6 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_previous( char32_t ) {
 		posInLine = max( min( posInLine, prevLineLength + shift ) - shift, 0 );
 		_pos = prevLineStart + posInLine;
 		assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
-		refresh_line();
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	} while ( false );
 	return ( history_move( true ) );
@@ -1809,7 +1816,6 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_next( char32_t ) {
 		posInLine = max( min( posInLine + shift, nextLineLength ), 0 );
 		_pos = nextLineStart + posInLine;
 		assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
-		refresh_line();
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	} while ( false );
 	return ( history_move( false ) );
@@ -1845,7 +1851,6 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_first( char32_t ) {
 			break;
 		}
 		_pos = 0;
-		refresh_line();
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	} while ( false );
 	return ( history_jump( true ) );
@@ -1862,7 +1867,6 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_last( char32_t ) {
 			break;
 		}
 		_pos = _data.length();
-		refresh_line();
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	} while ( false );
 	return ( history_jump( false ) );

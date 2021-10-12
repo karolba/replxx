@@ -6,6 +6,7 @@
 #include <chrono>
 #include <set>
 #include <optional>
+#include <cassert>
 
 #ifdef _WIN32
 
@@ -191,6 +192,7 @@ Replxx::ReplxxImpl::ReplxxImpl( FILE*, FILE*, FILE* )
 	, _hintsCache()
 	, _hintContextLenght( -1 )
 	, _hintSeed()
+	, _hasNewlines( false )
 	, _mutex() {
 	using namespace std::placeholders;
 	_namedActions[action_names::INSERT_CHARACTER]                = std::bind( &ReplxxImpl::invoke, this, Replxx::ACTION::INSERT_CHARACTER,                _1 );
@@ -675,6 +677,9 @@ void Replxx::ReplxxImpl::set_color( Replxx::Color color_ ) {
 }
 
 void Replxx::ReplxxImpl::render( char32_t ch ) {
+	if ( ch == '\n' ) {
+		_hasNewlines = true;
+	}
 	if ( ch == Replxx::KEY::ESCAPE ) {
 		_display.push_back( '^' );
 		_display.push_back( '[' );
@@ -698,6 +703,7 @@ void Replxx::ReplxxImpl::render( HINT_ACTION hintAction_ ) {
 	if ( hintAction_ == HINT_ACTION::SKIP ) {
 		return;
 	}
+	_hasNewlines = false;
 	_display.clear();
 	if ( _noColor ) {
 		for ( char32_t ch : _data ) {
@@ -784,7 +790,7 @@ void Replxx::ReplxxImpl::handle_hints( HINT_ACTION hintAction_ ) {
 		}
 		if ( _hintSelection != -1 ) {
 			_hint = _hintsCache[_hintSelection];
-			int len( min<int>( _hint.length(), maxCol - startCol ) );
+			int len( min<int>( _hint.length(), maxCol - ( startCol - _hintContextLenght ) ) );
 			if ( _hintContextLenght < len ) {
 				set_color( _hintColor );
 				for ( int i( _hintContextLenght ); i < len; ++ i ) {
@@ -909,7 +915,6 @@ void Replxx::ReplxxImpl::refresh_line( HINT_ACTION hintAction_ ) {
 	int yEndOfInput( 0 );
 	virtual_render( _display.data(), static_cast<int>( _display.size() ), xEndOfInput, yEndOfInput, _prompt.screen_columns() );
 
-
 	// position at the end of the prompt, clear to end of previous input
 	_terminal.set_cursor_visible( false );
 	_terminal.jump_cursor(
@@ -917,12 +922,17 @@ void Replxx::ReplxxImpl::refresh_line( HINT_ACTION hintAction_ ) {
 		-( _prompt._cursorRowOffset - _prompt._extraLines )
 	);
 	// display the input line
-	_terminal.write32( _display.data(), _displayInputLength );
-	_terminal.clear_screen( Terminal::CLEAR_SCREEN::TO_END );
-	_terminal.write32( _display.data() + _displayInputLength, static_cast<int>( _display.size() ) - _displayInputLength );
+	if ( _hasNewlines ) {
+		_terminal.clear_screen( Terminal::CLEAR_SCREEN::TO_END );
+		_terminal.write32( _display.data(), static_cast<int>( _display.size() ) );
+	} else {
+		_terminal.write32( _display.data(), _displayInputLength );
+		_terminal.clear_screen( Terminal::CLEAR_SCREEN::TO_END );
+		_terminal.write32( _display.data() + _displayInputLength, static_cast<int>( _display.size() ) - _displayInputLength );
+	}
 #ifndef _WIN32
 	// we have to generate our own newline on line wrap
-	if ( ( xEndOfInput == 0 ) && ( yEndOfInput > 0 ) ) {
+	if ( ( xEndOfInput == 0 ) && ( yEndOfInput > 0 ) && ! _data.is_empty() && ( _data.back() != '\n' ) ) {
 		_terminal.write8( "\n", 1 );
 	}
 #endif
@@ -1683,20 +1693,92 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	return ( Replxx::ACTION_RESULT::RETURN );
 }
 
-// Down, recall next line in history
-Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_next( char32_t ) {
-	return ( history_move( false ) );
+int Replxx::ReplxxImpl::prev_newline_position( int pos_ ) {
+	assert( ( pos_ >= 0 ) && ( pos_ <= _data.length() ) );
+	while ( pos_ >= 0 ) {
+		if ( _data[pos_] == '\n' ) {
+			break;
+		}
+		-- pos_;
+	}
+	return ( pos_ );
+}
+
+int Replxx::ReplxxImpl::next_newline_position( int pos_ ) {
+	assert( ( pos_ >= 0 ) && ( pos_ <= _data.length() ) );
+	int len( _data.length() );
+	while ( pos_ < len ) {
+		if ( _data[pos_] == '\n' ) {
+			break;
+		}
+		++ pos_;
+	}
+	return ( pos_ < len ? pos_ : -1 );
 }
 
 // Up, recall previous line in history
 Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_previous( char32_t ) {
+	assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
+	do {
+		if ( ! _hasNewlines ) {
+			break;
+		}
+		int prevNewlinePosition( prev_newline_position( _pos ) );
+		if ( prevNewlinePosition == _pos ) {
+			prevNewlinePosition = prev_newline_position( _pos - 1 );
+		}
+		if ( prevNewlinePosition < 0 ) {
+			break;
+		}
+		int posInLine( _pos - prevNewlinePosition - 1 );
+		int prevLineStart( prevNewlinePosition > 0 ? prev_newline_position( prevNewlinePosition - 1 ) + 1 : 0 );
+		int prevLineLength( max( prevNewlinePosition - prevLineStart, 0 ) );
+		int shift( prevLineStart == 0 ? _prompt.indentation() : 0 );
+		posInLine = max( min( posInLine, prevLineLength + shift ) - shift, 0 );
+		_pos = prevLineStart + posInLine;
+		assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
+		refresh_line();
+		return ( Replxx::ACTION_RESULT::CONTINUE );
+	} while ( false );
 	return ( history_move( true ) );
+}
+
+// Down, recall next line in history
+Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_next( char32_t ) {
+	assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
+	do {
+		if ( ! _hasNewlines ) {
+			break;
+		}
+		int nextNewlinePosition( next_newline_position( _pos ) );
+		if ( nextNewlinePosition < 0 ) {
+			break;
+		}
+		int nextLineStart( nextNewlinePosition + 1 );
+		int nextLineEnd( next_newline_position( nextLineStart ) );
+		if ( nextLineEnd < 0 ) {
+			nextLineEnd = _data.length();
+		}
+		int nextLineLength( nextLineEnd - nextLineStart );
+		int prevNewlinePosition( prev_newline_position( _pos ) );
+		if ( prevNewlinePosition == _pos ) {
+			prevNewlinePosition = _pos > 0 ? prev_newline_position( _pos - 1 ) : -1;
+		}
+		int lineStartPosition( prevNewlinePosition + 1 );
+		int posInLine( _pos - lineStartPosition );
+		int shift( lineStartPosition == 0 ? _prompt.indentation() : 0 );
+		posInLine = max( min( posInLine + shift, nextLineLength ), 0 );
+		_pos = nextLineStart + posInLine;
+		assert( ( _pos >= 0 ) && ( _pos <= _data.length() ) );
+		refresh_line();
+		return ( Replxx::ACTION_RESULT::CONTINUE );
+	} while ( false );
+	return ( history_move( false ) );
 }
 
 Replxx::ACTION_RESULT Replxx::ReplxxImpl::history_move( bool previous_ ) {
 	// if not already recalling, add the current line to the history list so
-	// we don't
-	// have to special case it
+	// we don't have to special case it
 	if ( _history.is_last() ) {
 		_history.update_last( _data );
 	}
@@ -2242,7 +2324,7 @@ void Replxx::ReplxxImpl::dynamic_refresh(Prompt& oldPrompt, Prompt& newPrompt, c
 
 #ifndef _WIN32
 	// we have to generate our own newline on line wrap
-	if (xEndOfInput == 0 && yEndOfInput > 0) {
+	if ( ( xEndOfInput == 0 ) && ( yEndOfInput > 0 ) && ( len > 0 ) && ( buf32[len - 1] != '\n' ) ) {
 		_terminal.write8( "\n", 1 );
 	}
 #endif

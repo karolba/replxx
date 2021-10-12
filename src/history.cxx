@@ -22,6 +22,7 @@ namespace {
 void delete_ReplxxHistoryScanImpl( Replxx::HistoryScanImpl* impl_ ) {
 	delete impl_;
 }
+static int const ETB = 0x17;
 }
 
 static int const REPLXX_DEFAULT_HISTORY_MAX_LEN( 1000 );
@@ -143,9 +144,12 @@ bool History::save( std::string const& filename, bool sync_ ) {
 	chmod( filename.c_str(), S_IRUSR | S_IWUSR );
 #endif
 	Utf8String utf8;
+	UnicodeString us;
 	for ( Entry const& h : _entries ) {
 		if ( ! h.text().is_empty() ) {
-			utf8.assign( h.text() );
+			us.assign( h.text() );
+			std::replace( us.begin(), us.end(), char32_t( '\n' ), char32_t( ETB ) );
+			utf8.assign( us );
 			histFile << "### " << h.timestamp() << "\n" << utf8.get() << endl;
 		}
 	}
@@ -213,7 +217,10 @@ void History::add_history_line( std::string const& when, std::string& history_li
 	string::size_type end( history_line.find_last_not_of( "\r\n" ) );
 	history_line.resize( end+1 );
 
-	_entries.emplace_back( when, UnicodeString( history_line ) );
+	UnicodeString us;
+	us.assign( history_line );
+	std::replace( us.begin(), us.end(), char32_t( ETB ), char32_t( '\n' ) );
+	_entries.emplace_back( when, us );
 	history_line.clear();
 }
 

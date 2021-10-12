@@ -28,6 +28,7 @@ keytab = {
 	"<backspace>": "",
 	"<tab>": "\t",
 	"<cr>": "\r",
+	"<s-cr>": chr( 10 ),
 	"<lf>": "\n",
 	"<left>": "\033[D",
 	"<s-left>": "\033[1;2D",
@@ -478,11 +479,11 @@ class ReplxxTests( unittest.TestCase ):
 		self_.check_scenario(
 			"<up><cr><c-d>",
 			"<c9>zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz "
-			"<brightgreen>color_brightgreen<rst><ceos><c15><u3><c9>zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz "
-			"<brightgreen>color_brightgreen<rst><ceos><c15>\r\n"
+			"<brightgreen>color_brightgreen<rst><ceos><c63><c9>zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz "
+			"<brightgreen>color_brightgreen<rst><ceos><c63>\r\n"
 			"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz color_brightgreen\r\n",
 			"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz color_brightgreen\n",
-			dimensions = ( 64, 16 )
+			dimensions = ( 16, 64 )
 		)
 	def test_hint_scroll_down( self_ ):
 		self_.check_scenario(
@@ -519,6 +520,30 @@ class ReplxxTests( unittest.TestCase ):
 			"        "
 			"<gray>color_black<rst><u3><c11><c9><white>color_white<rst><ceos><c20><c9><white>color_white<rst><ceos><c20>\r\n"
 			"color_white\r\n"
+		)
+	def test_overlong_hint( self_ ):
+		self_.check_scenario(
+			"<up><c-down><c-down><tab><cr><c-d>",
+			"<c9>zzzzzzzzzzzzzzzzzzzzzzzzz color_br<rst><ceos>\r\n"
+			"                                  <gray>color_brown<rst>\r\n"
+			"                                  <gray>color_brightre<rst>\r\n"
+			"                                  <gray>color_brightgr<rst>\r\n"
+			"<u4><c43><c9>zzzzzzzzzzzzzzzzzzzzzzzzz color_br<rst><ceos><gray>own<rst>\r\n"
+			"                                  <gray>color_brightre<rst>\r\n"
+			"                                  <gray>color_brightgr<rst>\r\n"
+			"                                  <gray>color_brightbl<rst>\r\n"
+			"<u4><c43><c9>zzzzzzzzzzzzzzzzzzzzzzzzz "
+			"color_br<rst><ceos><gray>ightre<rst>\r\n"
+			"                                  <gray>color_brightgr<rst>\r\n"
+			"                                  <gray>color_brightbl<rst>\r\n"
+			"                                  <gray>color_brightma<rst>\r\n"
+			"<u4><c43><c9>zzzzzzzzzzzzzzzzzzzzzzzzz "
+			"<brightred>color_brightred<rst><ceos><c2><u1><c9>zzzzzzzzzzzzzzzzzzzzzzzzz "
+			"<brightred>color_brightred<rst><ceos><c2>\r\n"
+			"zzzzzzzzzzzzzzzzzzzzzzzzz color_brightred\r\n",
+			#replxx> #
+			        "zzzzzzzzzzzzzzzzzzzzzzzzz color_br\n",###################
+			dimensions = ( 16, 48 )
 		)
 	def test_history( self_ ):
 		self_.check_scenario(
@@ -2121,6 +2146,88 @@ class ReplxxTests( unittest.TestCase ):
 			"<brightgreen>replxx<rst>> <c9>x<rst><ceos><c10><c9>x<rst><ceos><c10>\r\n"
 			"x\r\n",
 			command = [ ReplxxTests._cSample_, "q1" ]
+		)
+	def test_embedded_newline( self_ ):
+		self_.check_scenario(
+			"<up><c-left><s-cr><cr><c-d>",
+			"<c9><blue>color_blue<rst> "
+			"<red>color_red<rst><ceos><c29><c9><blue>color_blue<rst> "
+			"<red>color_red<rst><ceos><c20><c9><ceos><blue>color_blue<rst> \r\n"
+			"<red>color_red<rst><c1><u1><c9><ceos><blue>color_blue<rst> \r\n"
+			"<red>color_red<rst><c10>\r\n"
+			"color_blue \r\n"
+			"color_red\r\n",
+			"color_blue color_red\n"
+		)
+	def test_move_up_in_multiline( self_ ):
+		self_.check_scenario(
+			"<up><up> <cr><c-d>",
+			"<c9><ceos><blue>color_blue<rst>\r\n"
+			"<red>color_red<rst><c10><u1><c9><ceos><blue>color_blue<rst>\r\n"
+			"<red>color_red<rst><u1><c10><c9><ceos>c olor_blue\r\n"
+			"<red>color_red<rst><u1><c11><c9><ceos>c olor_blue\r\n"
+			"<red>color_red<rst><c10>\r\n"
+			"c olor_blue\r\n"
+			"color_red\r\n",
+			"some other\ncolor_bluecolor_red\n"
+		)
+		self_.check_scenario(
+			"<up><up><up><up>x<up><cr><c-d>",
+			"<c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><c24><u3><c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><u1><c21><u2><c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><u2><c21><u1><c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><u3><c21><c9><ceos>bbbbbbbbbbbbxbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><u3><c22><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29>\r\n"
+			"aaaaaaaaaaaaaaaaaaaa\r\n",
+			"aaaaaaaaaaaaaaaaaaaa\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n"
+		)
+	def test_move_down_in_multiline( self_ ):
+		self_.check_scenario(
+			"<pgup><down><home><down> <cr><c-d>",
+			"<c9>some other<rst><ceos><c19><c9><ceos><red>color_red<rst>\r\n"
+			"<blue>color_blue<rst><c11><u1><c9><ceos><red>color_red<rst>\r\n"
+			"<blue>color_blue<rst><u1><c9><c9><ceos><red>color_red<rst>\r\n"
+			"<blue>color_blue<rst><c9><u1><c9><ceos><red>color_red<rst>\r\n"
+			"color_bl ue<rst><c10><u1><c9><ceos><red>color_red<rst>\r\n"
+			"color_bl ue<rst><c12>\r\n"
+			"color_red\r\n"
+			"color_bl ue\r\n",
+			"some other\ncolor_redcolor_blue\n"
+		)
+		self_.check_scenario(
+			"<pgup><home><down><down><down>x<down><cr><c-d>",
+			"<c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><c17><u3><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><u3><c9><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><u2><c9><u1><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><u1><c9><u2><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><c9><u3><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbxbbbbbbbb<rst><c10><u3><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29>\r\n"
+			"aaaaaaaaaaaaaaaaaaaa\r\n",
+			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\naaaaaaaaaaaaaaaaaaaa\n"
 		)
 
 def parseArgs( self, func, argv ):

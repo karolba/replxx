@@ -213,6 +213,10 @@ public:
 	iterator end( void ) {
 		return ( _data.end() );
 	}
+
+	char32_t back( void ) const {
+		return ( _data.back() );
+	}
 };
 
 }

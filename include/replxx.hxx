@@ -89,7 +89,7 @@ public:
 		WHITE         = 15,
 		//INTENSE       = 16,
 		//NORMAL        = LIGHTGRAY,
-		DEFAULT       = -1,
+		DEFAULT       = 1u << 16u
 		ERROR         = -2,
 		//CUSTOM        = -3,
 	};
@@ -616,6 +616,12 @@ public:
 	 * \param val - if set to non-zero disable output colors.
 	 */
 	void set_no_color( bool val );
+
+	/*! \brief Enable/disable (prompt width) indent for multiline entry.
+	 *
+	 * \param val - if set to true then multiline indent will be enabled.
+	 */
+	void set_indent_multiline( bool val );
 
 	/*! \brief Set maximum number of entries in history list.
 	 */

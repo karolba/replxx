@@ -81,8 +81,7 @@ typedef enum {
 	REPLXX_COLOR_BRIGHTMAGENTA = 13,
 	REPLXX_COLOR_BRIGHTCYAN    = 14,
 	REPLXX_COLOR_WHITE         = 15,
-	REPLXX_COLOR_DEFAULT       = -1,
-	REPLXX_COLOR_ERROR         = -2
+	REPLXX_COLOR_DEFAULT       = 1u << 16u
 } ReplxxColor;
 
 enum { REPLXX_KEY_BASE         = 0x0010ffff + 1 };
@@ -519,6 +518,12 @@ REPLXX_IMPEXP void replxx_set_unique_history( Replxx*, int val );
  * \param val - if set to non-zero disable output colors.
  */
 REPLXX_IMPEXP void replxx_set_no_color( Replxx*, int val );
+
+/*! \brief Enable/disable (prompt width) indent for multiline entry.
+ *
+ * \param val - if set to non-zero then multiline indent will be enabled.
+ */
+REPLXX_IMPEXP void replxx_set_indent_multiline( Replxx*, int val );
 
 /*! \brief Set maximum number of entries in history list.
  */

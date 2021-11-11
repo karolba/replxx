@@ -149,6 +149,9 @@ termseq = {
 	"\x1b[0;1;35m": "<brightmagenta>",
 	"\x1b[0;1;36m": "<brightcyan>",
 	"\x1b[0;1;37m": "<white>",
+	"\x1b[0;1m": "<bold>",
+	"\x1b[0;4m": "<underline>",
+	"\x1b[0;4;1m": "<bold_underline>",
 	"\x1b[0;22;31;1m": "<bold_red>",
 	"\x1b[0;22;31;4m": "<underline_red>",
 	"\x1b[0;1;31;1m": "<bold_brightred>",
@@ -170,7 +173,6 @@ termseq = {
 	"\x1b[106m": "<bgbrightcyan>",
 	"\x1b[107m": "<bgwhite>",
 	"\x1b[1;32m": "<brightgreen>",
-	"\x1b[101;1;33m": "<err>",
 	"\x07": "<bell>",
 	"\x1b[2~": "<ins-key>",
 	"\x1b[?2004h": "<paste-on>",
@@ -179,7 +181,7 @@ termseq = {
 colRe = re.compile( "\\x1b\\[(\\d+)G" )
 upRe = re.compile( "\\x1b\\[(\\d+)A" )
 downRe = re.compile( "\\x1b\\[(\\d+)B" )
-colorRe = re.compile( "\\x1b\\[38;5;(\\d+)m" )
+colorRe = re.compile( "\\x1b\\[0;38;5;(\\d+)m" )
 bgcolorRe = re.compile( "\\x1b\\[48;5;(\\d+)m" )
 
 def sym_to_raw( str_ ):
@@ -253,11 +255,13 @@ class ReplxxTests( unittest.TestCase ):
 		command = _cxxSample_,
 		dimensions = ( 25, 80 ),
 		prompt = _prompt_,
-		end = _prompt_ + _end_,
+		end = None,
 		encoding = "utf-8",
 		pause = 0.25,
 		intraKeyDelay = 0.002
 	):
+		if end is None:
+			end = prompt + ReplxxTests._end_
 		with open( "replxx_history.txt", "wb" ) as f:
 			f.write( history.encode( encoding ) )
 			f.close()
@@ -583,7 +587,7 @@ class ReplxxTests( unittest.TestCase ):
 	def test_paren_not_matched( self_ ):
 		self_.check_scenario(
 			"a(b[c)d<left><left><left><left><left><left><left><cr><c-d>",
-			"<c9>a<rst><ceos><c10><c9>a<brightmagenta>(<rst><ceos><c11><c9>a<brightmagenta>(<rst>b<rst><ceos><c12><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst><ceos><c13><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<rst><ceos><c14><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst><ceos><c15><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c16><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c15><c9>a<err>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c14><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c13><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c12><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c11><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<err>)<rst>d<rst><ceos><c10><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c9><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c16>\r\n"
+			"<c9>a<rst><ceos><c10><c9>a<brightmagenta>(<rst><ceos><c11><c9>a<brightmagenta>(<rst>b<rst><ceos><c12><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst><ceos><c13><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<rst><ceos><c14><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst><ceos><c15><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c16><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c15><c9>a<red><bgbrightred>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c14><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c13><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c12><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c11><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<red><bgbrightred>)<rst>d<rst><ceos><c10><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c9><c9>a<brightmagenta>(<rst>b<brightmagenta>[<rst>c<brightmagenta>)<rst>d<rst><ceos><c16>\r\n"
 			"a(b[c)d\r\n"
 		)
 	def test_tab_completion( self_ ):
@@ -2139,6 +2143,19 @@ class ReplxxTests( unittest.TestCase ):
 			"some other\ncolor_bluecolor_red\n"
 		)
 		self_.check_scenario(
+			"<up><up> <cr><c-d>",
+			"<c9><ceos><brightblue>color_brightblue<rst>\r\n"
+			"        "
+			"<red>color_red<rst><c18><u1><c9><ceos><brightblue>color_brightblue<rst>\r\n"
+			"        <red>color_red<rst><u1><c18><c9><ceos>color_bri ghtblue\r\n"
+			"        <red>color_red<rst><u1><c19><c9><ceos>color_bri ghtblue\r\n"
+			"        <red>color_red<rst><c18>\r\n"
+			"color_bri ghtblue\r\n"
+			"color_red\r\n",
+			"some other\ncolor_brightbluecolor_red\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
+		)
+		self_.check_scenario(
 			"<up><up><up><up>x<up><cr><c-d>",
 			"<c9><ceos>bbbbbbbbbbbbbbbb\r\n"
 			"bbbbbbbbbbbbbbbbbbbb\r\n"
@@ -2153,6 +2170,24 @@ class ReplxxTests( unittest.TestCase ):
 			"aaaaaaaaaaaaaaaaaaaa\r\n",
 			"aaaaaaaaaaaaaaaaaaaa\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n"
 		)
+		self_.check_scenario(
+			"<up><up><up><up>x<up><cr><c-d>",
+			"<c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbb<rst><c25><u3><c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        "
+			"bbbbbbbbbbbbbbbb<rst><u1><c22><u1><c22><u1><c22><c9><ceos>bbbbbbbbbbbbbxbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbb\r\n"
+			"        "
+			"bbbbbbbbbbbbbbbb<rst><u3><c23><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29>\r\n"
+			"aaaaaaaaaaaaaaaaaaaa\r\n",
+			"aaaaaaaaaaaaaaaaaaaa\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
+		)
 	def test_move_down_in_multiline( self_ ):
 		self_.check_scenario(
 			"<pgup><down><pgup><down> <cr><c-d>",
@@ -2164,6 +2199,19 @@ class ReplxxTests( unittest.TestCase ):
 			"color_red\r\n"
 			"color_bl ue\r\n",
 			"some other\ncolor_redcolor_blue\n"
+		)
+		self_.check_scenario(
+			"<pgup><down><pgup><down> <cr><c-d>",
+			"<c9>some other<rst><ceos><c19><c9><ceos><red>color_red<rst>\r\n"
+			"        <blue>color_blue<rst><c19><u1><c9><ceos><red>color_red<rst>\r\n"
+			"        "
+			"<blue>color_blue<rst><u1><c9><d1><c9><u1><c9><ceos><red>color_red<rst>\r\n"
+			"         <blue>color_blue<rst><c10><u1><c9><ceos><red>color_red<rst>\r\n"
+			"         <blue>color_blue<rst><c20>\r\n"
+			"color_red\r\n"
+			" color_blue\r\n",
+			"some other\ncolor_redcolor_blue\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
 		self_.check_scenario(
 			"<pgup><pgup><down><down><down>x<down><cr><c-d>",
@@ -2179,6 +2227,24 @@ class ReplxxTests( unittest.TestCase ):
 			"bbbbbbbbxbbbbbbbb<rst><c10><u3><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29>\r\n"
 			"aaaaaaaaaaaaaaaaaaaa\r\n",
 			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\naaaaaaaaaaaaaaaaaaaa\n"
+		)
+		self_.check_scenario(
+			"<pgup><pgup><down><down><down>x<down><cr><c-d>",
+			"<c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbb<rst><c25><u3><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        "
+			"bbbbbbbbbbbbbbbb<rst><u3><c9><d1><c9><d1><c9><d1><c9><u3><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        bbbbbbbbbbbbbbbbbbbb\r\n"
+			"        "
+			"xbbbbbbbbbbbbbbbb<rst><c10><u3><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29><c9>aaaaaaaaaaaaaaaaaaaa<rst><ceos><c29>\r\n"
+			"aaaaaaaaaaaaaaaaaaaa\r\n",
+			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\naaaaaaaaaaaaaaaaaaaa\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
 	def test_go_to_beginning_of_multiline_entry( self_ ):
 		self_.check_scenario(
@@ -2249,6 +2315,24 @@ class ReplxxTests( unittest.TestCase ):
 			"x color_green zzz\r\n",
 			"color_red more textcolor_blue 123color_green zzz\n"
 		)
+		self_.check_scenario(
+			"<up><up><c-a><c-a><cr><c-d>",
+			"<c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u1><c20><c1><u2><c9><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20>\r\n"
+			"first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code\r\n",
+			"first line of textsecond verse of a poemnext passage of a scripturelast line of a code\n"
+		)
 	def test_move_to_end_of_line_in_multiline( self_ ):
 		self_.check_scenario(
 			"<up><pgup>x <end>x<right><end>x<right><end>x<cr><c-d>",
@@ -2283,6 +2367,28 @@ class ReplxxTests( unittest.TestCase ):
 			"color_green zzzx\r\n",
 			"color_red more textcolor_blue 123color_green zzz\n"
 		)
+		self_.check_scenario(
+			"<up><pgup><down><c-e><c-e><cr><c-d>",
+			"<c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u3><c9><d1><c9><c23><u1><c9><ceos>first line of "
+			"text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20>\r\n"
+			"first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code\r\n",
+			"first line of textsecond verse of a poemnext passage of a scripturelast line of a code\n"
+		)
 	def test_hints_in_multiline( self_ ):
 		self_.check_scenario(
 			"<up><c-down><cr><c-d>",
@@ -2302,6 +2408,23 @@ class ReplxxTests( unittest.TestCase ):
 		)
 		self_.check_scenario(
 			"<up><c-down><cr><c-d>",
+			"<c9><ceos>some long text\r\n"
+			"        color_br<rst>\r\n"
+			"        <gray>color_brown<rst>\r\n"
+			"        <gray>color_brightred<rst>\r\n"
+			"        <gray>color_brightgreen<rst><u3><c17><u1><c9><ceos>some long text\r\n"
+			"        color_br<rst><gray>own<rst>\r\n"
+			"        <gray>color_brightred<rst>\r\n"
+			"        <gray>color_brightgreen<rst>\r\n"
+			"        <gray>color_brightblue<rst><u3><c17><u1><c9><ceos>some long text\r\n"
+			"        color_br<rst><c17>\r\n"
+			"some long text\r\n"
+			"color_br\r\n",
+			"some long textcolor_br\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
+		)
+		self_.check_scenario(
+			"<up><c-down><cr><c-d>",
 			"<c9><ceos>some text\r\n"
 			"not on start color_b<rst>\r\n"
 			"             <gray>color_black<rst>\r\n"
@@ -2315,6 +2438,25 @@ class ReplxxTests( unittest.TestCase ):
 			"some text\r\n"
 			"not on start color_b\r\n",
 			"some textnot on start color_b\n"
+		)
+		self_.check_scenario(
+			"<up><c-down><cr><c-d>",
+			"<c9><ceos>some text\r\n"
+			"        not on start color_br<rst>\r\n"
+			"                     <gray>color_brown<rst>\r\n"
+			"                     <gray>color_brightred<rst>\r\n"
+			"                     <gray>color_brightgreen<rst><u3><c30><u1><c9><ceos>some "
+			"text\r\n"
+			"        not on start color_br<rst><gray>own<rst>\r\n"
+			"                     <gray>color_brightred<rst>\r\n"
+			"                     <gray>color_brightgreen<rst>\r\n"
+			"                     <gray>color_brightblue<rst><u3><c30><u1><c9><ceos>some "
+			"text\r\n"
+			"        not on start color_br<rst><c30>\r\n"
+			"some text\r\n"
+			"not on start color_br\r\n",
+			"some textnot on start color_br\n",
+			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
 	def test_async_prompt( self_ ):
 		self_.check_scenario(
@@ -2530,7 +2672,7 @@ class ReplxxTests( unittest.TestCase ):
 				"<brightgreen>replxx<rst>> \r\n"
 			],
 			"long line color_green and color_b\n",
-			command = [ ReplxxTests._cxxSample_, "p" ],
+			command = [ ReplxxTests._cxxSample_, "F" ],
 			pause = 0.5
 		)
 		self_.check_scenario(
@@ -2638,7 +2780,7 @@ class ReplxxTests( unittest.TestCase ):
 				"abcdefg\r\n"
 				"<brightgreen>replxx<rst>> \r\n"
 			],
-			command = [ ReplxxTests._cxxSample_, "m", "p" ],
+			command = [ ReplxxTests._cxxSample_, "m", "F" ],
 			pause = 0.5
 		)
 		self_.check_scenario(
@@ -2821,7 +2963,7 @@ class ReplxxTests( unittest.TestCase ):
 				"<brightgreen>replxx<rst>> <c1><ceos><brightgreen>replxx<rst>[|]> "
 				"<c12><ceos><c12>\r\n"
 			],
-			command = [ ReplxxTests._cxxSample_, "m", "p", "k123456" ],
+			command = [ ReplxxTests._cxxSample_, "m", "F", "k123456" ],
 			pause = 0.487
 		)
 	def test_prompt_from_callback( self_ ):
@@ -2908,6 +3050,82 @@ class ReplxxTests( unittest.TestCase ):
 			"bold_color_brightred color_brightred bold_color_red color_red "
 			"underline_color_red bold_underline_color_red\r\n",
 			"bold_color_brightred color_brightred bold_color_red color_red underline_color_red bold_underline_color_red\n"
+		)
+		self_.check_scenario(
+			"<up><cr><c-d>",
+			"<c9>normal_text <bold>bold_text<rst> <underline>underline_text<rst> "
+			"<bold_underline>bold_underline_text<rst><ceos><c65><c9>normal_text "
+			"<bold>bold_text<rst> <underline>underline_text<rst> "
+			"<bold_underline>bold_underline_text<rst><ceos><c65>\r\n"
+			"normal_text bold_text underline_text bold_underline_text\r\n",
+			"normal_text bold_text underline_text bold_underline_text\n"
+		)
+	def test_kill_to_begining_of_line_in_multiline( self_ ):
+		self_.check_scenario(
+			"<up><up><c-u><c-u><c-y><cr><c-d>",
+			"<c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u1><c20><u2><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"cripture\r\n"
+			"last line of a code<rst><u1><c1><u2><c9><ceos>cripture\r\n"
+			"last line of a code<rst><u1><c9><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u1><c20><u2><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20>\r\n"
+			"first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code\r\n",
+			"first line of textsecond verse of a poemnext passage of a scripturelast line of a code\n"
+		)
+	def test_kill_to_end_of_line_in_multiline( self_ ):
+		self_.check_scenario(
+			"<up><pgup><down><c-k><c-k><c-y><cr><c-d>",
+			"<c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u3><c9><d1><c9><u1><c9><ceos>first line of text\r\n"
+			"second v\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><u2><c9><u1><c9><ceos>first line of text\r\n"
+			"second v<rst><c9><u1><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20><u3><c9><ceos>first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code<rst><c20>\r\n"
+			"first line of text\r\n"
+			"second verse of a poem\r\n"
+			"next passage of a scripture\r\n"
+			"last line of a code\r\n",
+			"first line of textsecond verse of a poemnext passage of a scripturelast line of a code\n"
+		)
+	def test_long_prompt_multiline_enabled_hints( self_ ):
+		prompt = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa> "
+		self_.check_scenario(
+			"<up><cr><c-d>",
+			"<c40>co<rst><ceos>\r\n"
+			"                                       <gray>color_black<rst>\r\n"
+			"                                       <gray>color_red<rst>\r\n"
+			"                                       "
+			"<gray>color_green<rst><u3><c42><c40>co<rst><ceos><c42>\r\n"
+			"co\r\n",
+			"co\n",
+			command = [ ReplxxTests._cxxSample_, "I", "p" + prompt ],
+			dimensions = ( 24, 64 ),
+			prompt = prompt
 		)
 
 def parseArgs( self, func, argv ):

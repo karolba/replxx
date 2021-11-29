@@ -56,6 +56,7 @@ keytab = {
 	"<c-d>": "",
 	"<c-e>": "",
 	"<c-f>": "",
+	"<c-g>": "",
 	"<c-k>": "",
 	"<c-l>": "",
 	"<c-n>": "",
@@ -76,10 +77,12 @@ keytab = {
 	"<m-D>": "\033D",
 	"<m-f>": "\033f",
 	"<m-F>": "\033F",
+	"<m-g>": "\033g",
 	"<m-l>": "\033l",
 	"<m-L>": "\033L",
 	"<m-n>": "\033n",
 	"<m-p>": "\033p",
+	"<m-r>": "\033r",
 	"<m-u>": "\033u",
 	"<m-U>": "\033U",
 	"<m-w>": "\033w",
@@ -436,16 +439,11 @@ class ReplxxTests( unittest.TestCase ):
 		)
 	def test_prev_word_key( self_ ):
 		self_.check_scenario(
-			"abc def ghi<c-left><m-left>x<cr><c-d>",
-			"<c9>a<rst><ceos><c10><c9>ab<rst><ceos><c11><c9>abc<rst><ceos><c12><c9>abc "
-			"<rst><ceos><c13><c9>abc d<rst><ceos><c14><c9>abc "
-			"de<rst><ceos><c15><c9>abc def<rst><ceos><c16><c9>abc "
-			"def <rst><ceos><c17><c9>abc def "
-			"g<rst><ceos><c18><c9>abc def gh<rst><ceos><c19><c9>abc "
-			"def ghi<rst><ceos><c20><c9>abc def ghi<rst><ceos><c17>"
-			"<c13><c9>abc xdef ghi<rst><ceos><c14><c9>abc xdef "
-			"ghi<rst><ceos><c21>\r\n"
-			"abc xdef ghi\r\n"
+			"<up><c-left><m-left>x<cr><c-d>",
+			"<c9>abc def ghi<rst><ceos><c20><c9>abc def ghi<rst><ceos><c17><c13><c9>abc "
+			"xdef ghi<rst><ceos><c14><c9>abc xdef ghi<rst><ceos><c21>\r\n"
+			"abc xdef ghi\r\n",
+			"abc def ghi\n"
 		)
 		self_.check_scenario(
 			"<up><m-B>x<left><m-B>x<left><m-b>x<left><m-B>x<cr><c-d>",
@@ -464,15 +462,12 @@ class ReplxxTests( unittest.TestCase ):
 		)
 	def test_next_word_key( self_ ):
 		self_.check_scenario(
-			"abc def ghi<home><c-right><m-right>x<cr><c-d>",
-			"<c9>a<rst><ceos><c10><c9>ab<rst><ceos><c11><c9>abc<rst><ceos><c12><c9>abc "
-			"<rst><ceos><c13><c9>abc d<rst><ceos><c14><c9>abc "
-			"de<rst><ceos><c15><c9>abc def<rst><ceos><c16><c9>abc "
-			"def <rst><ceos><c17><c9>abc def "
-			"g<rst><ceos><c18><c9>abc def gh<rst><ceos><c19><c9>abc "
-			"def ghi<rst><ceos><c20><c9>abc def ghi<rst><ceos><c9><c12><c16><c9>abc defx "
-			"ghi<rst><ceos><c17><c9>abc defx ghi<rst><ceos><c21>\r\n"
-			"abc defx ghi\r\n"
+			"<up><home><c-right><m-right>x<cr><c-d>",
+			"<c9>abc def ghi<rst><ceos><c20><c9>abc def "
+			"ghi<rst><ceos><c9><c12><c16><c9>abc defx ghi<rst><ceos><c17><c9>abc defx "
+			"ghi<rst><ceos><c21>\r\n"
+			"abc defx ghi\r\n",
+			"abc def ghi\n"
 		)
 		self_.check_scenario(
 			"<up><home><m-F>x<m-F>x<m-f>x<m-F>x<cr><c-d>",
@@ -1478,7 +1473,7 @@ class ReplxxTests( unittest.TestCase ):
 			"<c9>Alice has a cat.<rst><ceos><c25>"
 			"<c9>Alice has a cat.<rst><ceos><c25>\r\n"
 			"Alice has a cat.\r\n",
-			command = ReplxxTests._cSample_ + " q1 'iAlice has a cat.'"
+			command = ReplxxTests._cSample_ + " q1 'PAlice has a cat.'"
 		)
 		self_.check_scenario(
 			"<cr><c-d>",
@@ -1487,7 +1482,7 @@ class ReplxxTests( unittest.TestCase ):
 			"<rst><ceos><c26>\r\n"
 			"Cat  eats  mice. "
 			"\r\n",
-			command = ReplxxTests._cSample_ + " q1 'iCat\teats\tmice.\r\n'"
+			command = ReplxxTests._cSample_ + " q1 'PCat\teats\tmice.\r\n'"
 		)
 		self_.check_scenario(
 			"<cr><c-d>",
@@ -1496,21 +1491,21 @@ class ReplxxTests( unittest.TestCase ):
 			"<rst><ceos><c26>\r\n"
 			"Cat  eats  mice. "
 			"\r\n",
-			command = ReplxxTests._cSample_ + " q1 'iCat\teats\tmice.\r\n\r\n\n\n'"
+			command = ReplxxTests._cSample_ + " q1 'PCat\teats\tmice.\r\n\r\n\n\n'"
 		)
 		self_.check_scenario(
 			"<cr><c-d>",
 			"<c9>M Alice has a cat.<rst><ceos><c27>"
 			"<c9>M Alice has a cat.<rst><ceos><c27>\r\n"
 			"M Alice has a cat.\r\n",
-			command = ReplxxTests._cSample_ + " q1 'iMAlice has a cat.'"
+			command = ReplxxTests._cSample_ + " q1 'PMAlice has a cat.'"
 		)
 		self_.check_scenario(
 			"<cr><c-d>",
 			"<c9>M  Alice has a cat.<rst><ceos><c28>"
 			"<c9>M  Alice has a cat.<rst><ceos><c28>\r\n"
 			"M  Alice has a cat.\r\n",
-			command = ReplxxTests._cSample_ + " q1 'iM\t\t\t\tAlice has a cat.'"
+			command = ReplxxTests._cSample_ + " q1 'PM\t\t\t\tAlice has a cat.'"
 		)
 	def test_prompt( self_ ):
 		prompt = "date: now\nrepl> "
@@ -3131,6 +3126,155 @@ class ReplxxTests( unittest.TestCase ):
 			command = [ ReplxxTests._cxxSample_, "I", "p" + prompt ],
 			dimensions = ( 24, 64 ),
 			prompt = prompt
+		)
+	def test_ignore_case_hints_completions( self_ ):
+		self_.check_scenario(
+			"de<tab>e<tab><c-down><tab><cr><c-d>",
+			"<c9>d<rst><ceos><c10><c9>de<rst><ceos>\r\n"
+			"        <gray>determinANT<rst>\r\n"
+			"        <gray>determiNATION<rst>\r\n"
+			"        <gray>deterMINE<rst><u3><c11><c9>determin<rst><ceos>\r\n"
+			"        <gray>determinANT<rst>\r\n"
+			"        <gray>determiNATION<rst>\r\n"
+			"        <gray>deterMINE<rst><u3><c17><c9>determine<rst><ceos>\r\n"
+			"        <gray>deterMINE<rst>\r\n"
+			"        <gray>deTERMINED<rst><u2><c18><c9>determine<rst><ceos><c18>\r\n"
+			"<brightmagenta>deterMINE<rst>   <brightmagenta>deTERMINE<rst>D\r\n"
+			"<brightgreen>replxx<rst>> <c9>determine<rst><ceos>\r\n"
+			"        <gray>deterMINE<rst>\r\n"
+			"        <gray>deTERMINED<rst><u2><c18><c9>determine<rst><ceos>\r\n"
+			"        <gray>deTERMINED<rst>\r\n"
+			"        "
+			"<gray>determine<u2><c18><c9>deterMINE<rst><ceos><c18><c9>deterMINE<rst><ceos><c18>\r\n"
+			"deterMINE\r\n",
+			command = [ ReplxxTests._cxxSample_, "i" ]
+		)
+		self_.check_scenario(
+			"de<tab>e<tab>d<tab><cr><c-d>",
+			"<c9>d<rst><ceos><c10><c9>de<rst><ceos>\r\n"
+			"        <gray>determinANT<rst>\r\n"
+			"        <gray>determiNATION<rst>\r\n"
+			"        <gray>deterMINE<rst><u3><c11><c9>determin<rst><ceos>\r\n"
+			"        <gray>determinANT<rst>\r\n"
+			"        <gray>determiNATION<rst>\r\n"
+			"        <gray>deterMINE<rst><u3><c17><c9>determine<rst><ceos>\r\n"
+			"        <gray>deterMINE<rst>\r\n"
+			"        <gray>deTERMINED<rst><u2><c18><c9>determine<rst><ceos><c18>\r\n"
+			"<brightmagenta>deterMINE<rst>   <brightmagenta>deTERMINE<rst>D\r\n"
+			"<brightgreen>replxx<rst>> <c9>determine<rst><ceos>\r\n"
+			"        <gray>deterMINE<rst>\r\n"
+			"        "
+			"<gray>deTERMINED<rst><u2><c18><c9>determined<rst><ceos><c19><c9>deTERMINED<rst><ceos><c19><c9>deTERMINED<rst><ceos><c19>\r\n"
+			"deTERMINED\r\n",
+			command = [ ReplxxTests._cxxSample_, "i" ]
+		)
+	def test_ignore_case_history_search( self_ ):
+		self_.check_scenario(
+			"<c-r>er<backspace>R<cr><c-d>",
+			"<c1><ceos><c1><ceos>(reverse-i-search)`': "
+			"<c23><c1><ceos>(reverse-i-search)`e': "
+			"determinANT<c27><c1><ceos>(reverse-i-search)`er': "
+			"determinANT<c28><c1><ceos>(reverse-i-search)`e': "
+			"determinANT<c27><c1><ceos>(reverse-i-search)`eR': "
+			"deteRMINISM<c28><c1><ceos><brightgreen>replxx<rst>> "
+			"deteRMINISM<c12><c9>deteRMINISM<rst><ceos><c12><c9>deteRMINISM<rst><ceos><c20>\r\n"
+			"thanks for the input: deteRMINISM\r\n",
+			"deTERMINED\ndetERMINISTIC\ndeteRMINISM\ndeterMINE\ndetermiNATION\ndeterminANT\n",
+			command = [ ReplxxTests._cSample_, "i1" ]
+		)
+		self_.check_scenario(
+			"deter<m-p><cr><c-d>",
+			"<c9>d<rst><ceos><gray>b<rst><c10><c9>de<rst><ceos><c11><c9>det<rst><ceos><c12><c9>dete<rst><ceos><c13><c9>deter<rst><ceos><c14><c9>determinANT<rst><ceos><c20><c9>determinANT<rst><ceos><c20>\r\n"
+			"thanks for the input: determinANT\r\n",
+			"deTERMINED\ndetERMINISTIC\ndeteRMINISM\ndeterMINE\ndetermiNATION\ndeterminANT\n",
+			command = [ ReplxxTests._cSample_, "i1" ]
+		)
+		self_.check_scenario(
+			"deteR<m-p><cr><c-d>",
+			"<c9>d<rst><ceos><gray>b<rst><c10><c9>de<rst><ceos><c11><c9>det<rst><ceos><c12><c9>dete<rst><ceos><c13><c9>deteR<rst><ceos><c14><c9>deteRMINISM<rst><ceos><c20><c9>deteRMINISM<rst><ceos><c20>\r\n"
+			"thanks for the input: deteRMINISM\r\n",
+			"deTERMINED\ndetERMINISTIC\ndeteRMINISM\ndeterMINE\ndetermiNATION\ndeterminANT\n",
+			command = [ ReplxxTests._cSample_, "i1" ]
+		)
+	def test_history_scratch( self_ ):
+		self_.check_scenario(
+			"<up>x<up>y<up>z<down><up>Z<pgdown><up><pgup><cr><c-d>",
+			"<c9>three<rst><ceos><c14><c9>threex<rst><ceos><c15>"
+			"<c9>two<rst><ceos><c12><c9>twoy<rst><ceos><c13>"
+			"<c9>one<rst><ceos><c12><c9>onez<rst><ceos><c13>"
+			"<c9>twoy<rst><ceos><c13><c9>onez<rst><ceos><c13>"
+			"<c9>onezZ<rst><ceos><c14><c9><rst><ceos><c9>"
+			"<c9>threex<rst><ceos><c15><c9>onezZ<rst><ceos><c14>"
+			"<c9>onezZ<rst><ceos><c14>\r\n"
+			"onezZ\r\n",
+			"one\ntwo\nthree\n"
+		)
+		with open( "replxx_history.txt", "rb" ) as f:
+			data = f.read().decode()
+			origHist = "### 0000-00-00 00:00:00.000\none\n### 0000-00-00 00:00:00.000\ntwo\n### 0000-00-00 00:00:00.000\nthree\n";
+			self_.assertSequenceEqual( data[:len(origHist)], origHist )
+			self_.assertSequenceEqual( data[-6:], "onezZ\n" )
+		self_.check_scenario(
+			"<up>x<up>y<up>z<down><c-g><up><down><cr><c-d>",
+			"<c9>three<rst><ceos><c14><c9>threex<rst><ceos><c15>"
+			"<c9>two<rst><ceos><c12><c9>twoy<rst><ceos><c13>"
+			"<c9>one<rst><ceos><c12><c9>onez<rst><ceos><c13>"
+			"<c9>twoy<rst><ceos><c13><c9>two<rst><ceos><c12>"
+			"<c9>onez<rst><ceos><c13><c9>two<rst><ceos><c12>"
+			"<c9>two<rst><ceos><c12>\r\n"
+			"two\r\n",
+			"one\ntwo\nthree\n"
+		)
+		self_.check_scenario(
+			"<up>x<up>y<up>z<down><m-g><up><down><down><cr><c-d>",
+			"<c9>three<rst><ceos><c14><c9>threex<rst><ceos><c15>"
+			"<c9>two<rst><ceos><c12><c9>twoy<rst><ceos><c13>"
+			"<c9>one<rst><ceos><c12><c9>onez<rst><ceos><c13>"
+			"<c9>twoy<rst><ceos><c13><c9>two<rst><ceos><c12>"
+			"<c9>one<rst><ceos><c12><c9>two<rst><ceos><c12>"
+			"<c9>three<rst><ceos><c14><c9>three<rst><ceos><c14>\r\n"
+			"three\r\n",
+			"one\ntwo\nthree\n"
+		)
+	def test_move_up_over_multiline( self_ ):
+		self_.check_scenario(
+			"<m-up><m-up><m-up><cr><c-d>",
+			"<c9>ZZZ<rst><ceos><c12><c9><ceos>bbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbbbbb<rst><c24><u3><c9><yellow>123<rst><ceos><c12><c9><yellow>123<rst><ceos><c12>\r\n"
+			"123\r\n",
+			"123\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\nZZZ\n"
+		)
+	def test_move_down_over_multiline( self_ ):
+		self_.check_scenario(
+			"<pgup><m-down><pgup><m-down><m-down>x<cr><c-d>",
+			"<c9><yellow>123<rst><ceos><c12><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><c17><u3><c9><ceos>bbbbbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbbbbbb\r\n"
+			"bbbbbbbbbbbbbbbb<rst><u3><c9><c9>ZZZ<rst><ceos><c12><c9><rst><ceos><c9><c9>x<rst><ceos><c10><c9>x<rst><ceos><c10>\r\n"
+			"x\r\n",
+			"123\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\nZZZ\n"
+		)
+	def test_position_tracking_no_color( self_ ):
+		self_.check_scenario(
+			"abcdef<home><cr><c-d>",
+			"abcdef<c9><c9>abcdef<ceos><c15>\r\nthanks for the input: abcdef\r\n",
+			command = [ ReplxxTests._cSample_, "m", "N", "S", "C", "M0" ]
+		)
+	def test_seeded_incremental_history_search( self_ ):
+		self_.check_scenario(
+			"for<m-r><m-r><cr><c-d>",
+			"<c9>f<rst><ceos><c10><c9>fo<rst><ceos><c11><c9>for<rst><ceos><c12><c1><ceos><c1><ceos>(reverse-i-search)`for': "
+			"for<c29><c1><ceos>(reverse-i-search)`for': "
+			"forth<c26><c1><ceos>(reverse-i-search)`for': "
+			"fortran<c26><c1><ceos><brightgreen>replxx<rst>> "
+			"fortran<c9><c9>fortran<rst><ceos><c9><c9>fortran<rst><ceos><c16>\r\n"
+			"fortran\r\n",
+			"\n".join( _words_[::-1] ) + "\n"
 		)
 
 def parseArgs( self, func, argv ):

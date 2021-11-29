@@ -46,10 +46,10 @@ public:
 		UnicodeString const& text( void ) const {
 			return ( _scratch );
 		}
-		void scratch( UnicodeString const& s ) const {
+		void set_scratch( UnicodeString const& s ) {
 			_scratch = s;
 		}
-		void restore_scratch( void ) const {
+		void reset_scratch( void ) {
 			_scratch = _text;
 		}
 		bool operator < ( Entry const& other_ ) const {
@@ -57,12 +57,12 @@ public:
 		}
 	};
 	typedef std::list<Entry> entries_t;
-	typedef std::unordered_map<UnicodeString, entries_t::const_iterator> locations_t;
+	typedef std::unordered_map<UnicodeString, entries_t::iterator> locations_t;
 private:
 	entries_t _entries;
 	locations_t _locations;
 	int _maxSize;
-	entries_t::const_iterator _current;
+	entries_t::iterator _current;
 	entries_t::const_iterator _yankPos;
 	/*
 	 * _previous and _recallMostRecent are used to allow
@@ -72,7 +72,7 @@ private:
 	 * Special meaning is: a down arrow shall jump to the line one
 	 * after previously accepted from history.
 	 */
-	entries_t::const_iterator _previous;
+	entries_t::iterator _previous;
 	bool _recallMostRecent;
 	bool _unique;
 public:
@@ -102,13 +102,18 @@ public:
 	}
 	void update_last( UnicodeString const& );
 	void drop_last( void );
-	bool is_last( void ) const;
+	bool is_last( void );
 	bool move( bool );
-	void scratch( UnicodeString const& s ) const {
-		_current->scratch(s);
+	void set_current_scratch( UnicodeString const& s ) {
+		_current->set_scratch( s );
 	}
-	void restore_scratch( void ) const {
-		_current->restore_scratch();
+	void reset_scratches( void ) {
+		for ( Entry& entry : _entries ) {
+			entry.reset_scratch();
+		}
+	}
+	void reset_current_scratch( void ) {
+		_current->reset_scratch();
 	}
 	UnicodeString const& current( void ) const {
 		return ( _current->text() );
@@ -117,7 +122,7 @@ public:
 		return ( _yankPos->text() );
 	}
 	void jump( bool, bool = true );
-	bool common_prefix_search( UnicodeString const&, int, bool );
+	bool common_prefix_search( UnicodeString const&, int, bool, bool );
 	int size( void ) const {
 		return ( static_cast<int>( _entries.size() ) );
 	}
@@ -127,15 +132,15 @@ public:
 private:
 	History( History const& ) = delete;
 	History& operator = ( History const& ) = delete;
-	bool move( entries_t::const_iterator&, int, bool = false ) const;
-	entries_t::const_iterator moved( entries_t::const_iterator, int, bool = false ) const;
-	void erase( entries_t::const_iterator );
+	bool move( entries_t::iterator&, int, bool = false );
+	entries_t::iterator moved( entries_t::iterator, int, bool = false );
+	void erase( entries_t::iterator );
 	void trim_to_max_size( void );
 	void remove_duplicate( UnicodeString const& );
 	void remove_duplicates( void );
 	void do_load( std::istream& );
 	void add_history_line( std::string const&, std::string& );
-	entries_t::const_iterator last( void ) const;
+	entries_t::iterator last( void );
 	void sort( void );
 	void reset_iters( void );
 };

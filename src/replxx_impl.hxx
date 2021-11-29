@@ -156,6 +156,7 @@ private:
 	bool _hasNewlines;
 	int _oldPos;
 	bool _moveCursor;
+	bool _ignoreCase;
 	mutable std::mutex _mutex;
 public:
 	ReplxxImpl( FILE*, FILE*, FILE* );
@@ -200,6 +201,7 @@ public:
 	void bind_key_internal( char32_t, char const* );
 	Replxx::State get_state( void ) const;
 	void set_state( Replxx::State const& );
+	void set_ignore_case( bool val );
 private:
 	ReplxxImpl( ReplxxImpl const& ) = delete;
 	ReplxxImpl& operator = ( ReplxxImpl const& ) = delete;
@@ -239,11 +241,15 @@ private:
 	Replxx::ACTION_RESULT delete_character( char32_t );
 	Replxx::ACTION_RESULT backspace_character( char32_t );
 	Replxx::ACTION_RESULT commit_line( char32_t );
+	Replxx::ACTION_RESULT line_next( char32_t );
+	Replxx::ACTION_RESULT line_previous( char32_t );
 	Replxx::ACTION_RESULT history_next( char32_t );
 	Replxx::ACTION_RESULT history_previous( char32_t );
 	Replxx::ACTION_RESULT history_move( bool );
 	Replxx::ACTION_RESULT history_first( char32_t );
 	Replxx::ACTION_RESULT history_last( char32_t );
+	Replxx::ACTION_RESULT history_restore( char32_t );
+	Replxx::ACTION_RESULT history_restore_current( char32_t );
 	Replxx::ACTION_RESULT history_jump( bool );
 	Replxx::ACTION_RESULT hint_next( char32_t );
 	Replxx::ACTION_RESULT hint_previous( char32_t );

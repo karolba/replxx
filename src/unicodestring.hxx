@@ -3,19 +3,19 @@
 
 #include <vector>
 #include <cstring>
+#include <cwctype>
 #include <cassert>
 
 #include "conversion.hxx"
 
 namespace replxx {
 
-inline bool case_insensitive_equal(char32_t l, char32_t r) {
-	static constexpr int delta = 'a' - 'A';
-	if (l >= 'a' && l <= 'z')
-		l -= delta;
-	if (r >= 'a' && r <= 'z')
-		r -= delta;
+inline bool case_sensitive_equal( char32_t l, char32_t r ) {
 	return l == r;
+}
+
+inline bool case_insensitive_equal( char32_t l, char32_t r ) {
+	return towlower( static_cast<wint_t>( l ) ) == towlower( static_cast<wint_t>( r ) );
 }
 
 class UnicodeString {
@@ -178,10 +178,10 @@ public:
 	}
 
 	template <class BinaryPredicate>
-	bool starts_with( data_buffer_t::const_iterator first_, data_buffer_t::const_iterator last_, BinaryPredicate && pred ) const {
+	bool starts_with( data_buffer_t::const_iterator first_, data_buffer_t::const_iterator last_, BinaryPredicate&& pred ) const {
 		return (
 			( std::distance( first_, last_ ) <= length() )
-			&& ( std::equal( first_, last_, _data.begin(), std::forward<BinaryPredicate>(pred) ) )
+			&& ( std::equal( first_, last_, _data.begin(), std::forward<BinaryPredicate>( pred ) ) )
 		);
 	}
 

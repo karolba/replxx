@@ -226,10 +226,7 @@ inline int notty( void ) {
 void Terminal::enable_out( void ) {
 #ifdef _WIN32
 	SetConsoleOutputCP( 65001 );
-<<<<<<< HEAD:src/terminal.cxx
-=======
 
->>>>>>> 959ed28 (Support for stderr WIP):src/io.cxx
 	_consoleOut = GetStdHandle( STD_OUTPUT_HANDLE );
 	GetConsoleMode( _consoleOut, &_origOutMode );
 	_autoEscape = SetConsoleMode( _consoleOut, _origOutMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING ) != 0;

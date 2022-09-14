@@ -43,18 +43,18 @@ public:
 
 	void assign( char32_t const* str_, int len_ ) {
 		int len( len_ * 4 );
-		realloc( len );
+		realloc_for_length( len );
 		_len = copyString32to8( _data.get(), len, str_, len_ );
 	}
 
 	void assign( std::string const& str_ ) {
-		realloc( static_cast<int>( str_.length() ) );
+		realloc_for_length( static_cast<int>( str_.length() ) );
 		strncpy( _data.get(), str_.c_str(), str_.length() );
 		_len = static_cast<int>( str_.length() );
 	}
 
 	void assign( Utf8String const& other_ ) {
-		realloc( other_._len );
+		realloc_for_length( other_._len );
 		strncpy( _data.get(), other_._data.get(), other_._len );
 		_len = other_._len;
 	}
@@ -78,7 +78,7 @@ public:
 	}
 
 private:
-	void realloc( int reqLen ) {
+	void realloc_for_length( int reqLen ) {
 		if ( ( reqLen + 1 ) > _bufSize ) {
 			_bufSize = 1;
 			while ( ( reqLen + 1 ) > _bufSize ) {

@@ -341,8 +341,8 @@ Replxx::ReplxxImpl::ReplxxImpl( FILE*, FILE*, FILE* )
 Replxx::ReplxxImpl::~ReplxxImpl( void ) {
 	try {
 		while ( ! _messages.empty() ) {
-			string const& message( _messages.front() );
-			_terminal.write8( message.data(), static_cast<int>( message.length() ) );
+			auto& message( _messages.front() );
+			_terminal.write8( message.first, message.second.data(), static_cast<int>( message.second.length() ) );
 			_messages.pop_front();
 		}
 
@@ -687,9 +687,9 @@ char const* Replxx::ReplxxImpl::input( std::string const& prompt ) {
 char const* Replxx::ReplxxImpl::finalize_input( char const* retVal_ ) {
 	std::unique_lock<std::mutex> l( _mutex );
 	while ( ! _messages.empty() ) {
-		string const& message( _messages.front() );
+		const auto& msg = _messages.front();
 		l.unlock();
-		_terminal.write8( message.data(), static_cast<int>( message.length() ) );
+		_terminal.write8( msg.first, msg.second.data(), static_cast<int>( msg.second.length() ) );
 		l.lock();
 		_messages.pop_front();
 	}
@@ -734,7 +734,7 @@ void Replxx::ReplxxImpl::print( Replxx::StdFile std_, char const* str_, int size
 #endif
 		_terminal.write8( std_, str_, size_ );
 	} else {
-		_messages.emplace_back( str_, size_ );
+		_messages.push_back( { std_, std::string( str_, size_ ) } );
 		_terminal.notify_event( Terminal::EVENT_TYPE::MESSAGE );
 	}
 	return;

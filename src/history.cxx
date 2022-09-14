@@ -15,6 +15,7 @@
 
 #include "replxx.hxx"
 #include "history.hxx"
+#include "replxx.hxx"
 
 using namespace std;
 

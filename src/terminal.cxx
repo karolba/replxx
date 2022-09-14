@@ -12,7 +12,9 @@
 #include <io.h>
 #define isatty _isatty
 #define strcasecmp _stricmp
+#ifndef strdup
 #define strdup _strdup
+#endif
 #define write _write
 #define STDIN_FILENO 0
 

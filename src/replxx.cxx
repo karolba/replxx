@@ -396,7 +396,7 @@ void replxx_set_state( ::Replxx* replxx_, ReplxxState* state ) {
 
 void replxx_set_ignore_case( ::Replxx* replxx_, int val ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
-	replxx->set_ignore_case( val );
+	replxx->set_ignore_case( !!val );
 }
 
 /**
@@ -469,7 +469,7 @@ struct replxx_hints {
 };
 
 void modify_fwd( replxx_modify_callback_t fn, std::string& line_, int& cursorPosition_, void* userData_ ) {
-#ifdef _WIN32
+#if defined( _WIN32 ) && !defined(strdup)
 #define strdup _strdup
 #endif
 	char* s( strdup( line_.c_str() ) );

@@ -1848,7 +1848,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 	_lastRefreshTime = 0;
 	refresh_line( _refreshSkipped ? HINT_ACTION::REGENERATE : HINT_ACTION::TRIM );
 	_history.commit_index();
-	_history.restore_scratch();
+	_history.reset_current_scratch();
 	_history.drop_last();
 	return ( Replxx::ACTION_RESULT::RETURN );
 }

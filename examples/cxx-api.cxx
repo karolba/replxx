@@ -15,6 +15,8 @@
 #include "replxx.hxx"
 #include "util.h"
 
+#include "monolithic_examples.h"
+
 using Replxx = replxx::Replxx;
 using namespace replxx::color;
 
@@ -254,7 +256,12 @@ Replxx::ACTION_RESULT message( Replxx& replxx, std::string s, char32_t ) {
 	return ( Replxx::ACTION_RESULT::CONTINUE );
 }
 
-int main( int argc_, char** argv_ ) {
+
+#if defined(BUILD_MONOLITHIC)
+#define main	replxx_cpp_api_main
+#endif
+
+int main( int argc_, const char** argv_ ) {
 	// words to be completed
 	std::vector<std::string> examples {
 		".help", ".history", ".quit", ".exit", ".clear", ".prompt ",

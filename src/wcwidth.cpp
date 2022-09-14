@@ -63,6 +63,8 @@
 #include <string>
 #include <memory>
 
+#include "util.hxx"
+
 namespace replxx {
 
 struct interval {

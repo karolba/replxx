@@ -11,8 +11,6 @@
 
 namespace replxx {
 
-int mk_wcwidth( char32_t );
-
 int virtual_render( char32_t const* display_, int size_, int& x_, int& y_, int screenColumns_, int promptLen_, char32_t* rendered_, int* renderedSize_ ) {
 	char32_t* out( rendered_ );
 	int visibleCount( 0 );
@@ -177,4 +175,3 @@ std::string now_ms_str( void ) {
 }
 
 }
-

@@ -55,21 +55,9 @@
 #	define REPLXX_IMPEXP /**/
 #endif
 
-#ifdef ERROR
-enum { ERROR_BB1CA97EC761FC37101737BA0AA2E7C5 = ERROR };
 #undef ERROR
-enum { ERROR = ERROR_BB1CA97EC761FC37101737BA0AA2E7C5 };
-#endif
-#ifdef ABORT
-enum { ABORT_8D12A2CA7E5A64036D7251A3EDA51A38 = ABORT };
 #undef ABORT
-enum { ABORT = ABORT_8D12A2CA7E5A64036D7251A3EDA51A38 };
-#endif
-#ifdef DELETE
-enum { DELETE_32F68A60CEF40FAEDBC6AF20298C1A1E = DELETE };
 #undef DELETE
-enum { DELETE = DELETE_32F68A60CEF40FAEDBC6AF20298C1A1E };
-#endif
 
 namespace replxx {
 
@@ -94,7 +82,7 @@ public:
 		WHITE         = 15,
 		//INTENSE       = 16,
 		//NORMAL        = LIGHTGRAY,
-		DEFAULT       = 1u << 16u
+		DEFAULT       = 1u << 16u,
 		ERROR         = -2,
 		//CUSTOM        = -3,
 	};

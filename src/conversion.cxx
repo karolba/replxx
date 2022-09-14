@@ -6,7 +6,7 @@
 
 #include "conversion.hxx"
 
-#ifdef _WIN32
+#if defined( _WIN32 ) && !defined(strdup)
 #define strdup _strdup
 #endif
 

@@ -3,11 +3,14 @@
 #include <conio.h>
 #include <windows.h>
 #include <io.h>
+#include <crtdbg.h>
 #if _MSC_VER < 1900 && defined (_MSC_VER)
 #define snprintf _snprintf	// Microsoft headers use underscores in some names
 #endif
 #define strcasecmp _stricmp
+#ifndef strdup
 #define strdup _strdup
+#endif
 #define write _write
 #define STDIN_FILENO 0
 

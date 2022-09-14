@@ -1,3 +1,4 @@
+#include "util.h"
 #include <string.h>
 
 int utf8str_codepoint_len( char const* s, int utf8len ) {

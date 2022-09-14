@@ -22,11 +22,13 @@ inline char32_t control_to_human( char32_t key ) {
 	return ( key < 27 ? ( key + 0x40 ) : ( key + 0x18 ) );
 }
 
-int virtual_render( char32_t const*, int, int&, int&, int, int, char32_t* = nullptr, int* = nullptr );
-char const* ansi_color( Replxx::Color );
+int virtual_render(char32_t const* display_, int size_, int& x_, int& y_, int screenColumns_, int promptLen_, char32_t* rendered_ = nullptr, int* renderedSize_ = nullptr);
+char const* ansi_color(Replxx::Color color_);
+
 std::string now_ms_str( void );
+
+int mk_wcwidth(char32_t ucs);
 
 }
 
 #endif
-

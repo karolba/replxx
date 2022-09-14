@@ -14,6 +14,8 @@
 #include "replxx.h"
 #include "util.h"
 
+#include "monolithic_examples.h"
+
 void modify_callback(char** line, int* cursorPosition, void* ud) {
 	char* s = *line;
 	char* p = strchr( s, '*' );
@@ -129,7 +131,12 @@ void split( char* str_, char** data_, int size_ ) {
 	data_[i] = 0;
 }
 
-int main( int argc, char** argv ) {
+
+#if defined(BUILD_MONOLITHIC)
+#define main	replxx_c_api_main
+#endif
+
+int main( int argc, const char** argv ) {
 #define MAX_EXAMPLE_COUNT 128
 	char* examples[MAX_EXAMPLE_COUNT + 1] = {
 		"db", "hello", "hallo", "hans", "hansekogge", "seamann", "quetzalcoatl", "quit", "power", NULL
@@ -150,9 +157,10 @@ int main( int argc, char** argv ) {
 #ifdef __REPLXX_DEBUG__
 		if ( !strcmp( *argv, "--keycodes" ) ) {
 			replxx_debug_dump_print_codes();
-			exit(0);
+			return 0;
 		}
 #endif
+		char* line = strdup(argv[0]);
 		switch ( (*argv)[0] ) {
 			case 'b': replxx_set_beep_on_ambiguous_completion( replxx, (*argv)[1] - '0' ); break;
 			case 'c': replxx_set_completion_count_cutoff( replxx, atoi( (*argv) + 1 ) );   break;
@@ -161,7 +169,7 @@ int main( int argc, char** argv ) {
 			case 'h': replxx_set_max_hint_rows( replxx, atoi( (*argv) + 1 ) );             break;
 			case 'H': replxx_set_hint_delay( replxx, atoi( (*argv) + 1 ) );                break;
 			case 's': replxx_set_max_history_size( replxx, atoi( (*argv) + 1 ) );          break;
-			case 'P': replxx_set_preload_buffer( replxx, recode( (*argv) + 1 ) );          break;
+			case 'P': replxx_set_preload_buffer( replxx, recode( line + 1 ) );          break;
 			case 'I': replxx_set_immediate_completion( replxx, (*argv)[1] - '0' );         break;
 			case 'u': replxx_set_unique_history( replxx, (*argv)[1] - '0' );               break;
 			case 'w': replxx_set_word_break_characters( replxx, (*argv) + 1 );             break;
@@ -169,15 +177,15 @@ int main( int argc, char** argv ) {
 			case 'i': replxx_set_ignore_case( replxx, (*argv)[1] - '0' );                  break;
 			case 'n': indentMultiline = (*argv)[1] - '0';                                  break;
 			case 'B': replxx_enable_bracketed_paste( replxx );                             break;
-			case 'p': prompt = recode( (*argv) + 1 );                                      break;
+			case 'p': prompt = recode( line + 1 );                                      break;
 			case 'q': quiet = atoi( (*argv) + 1 );                                         break;
 			case 'M': installModifyCallback = atoi( (*argv) + 1 );                         break;
 			case 'C': installCompletionCallback = 0;                                       break;
 			case 'S': installHighlighterCallback = 0;                                      break;
 			case 'N': installHintsCallback = 0;                                            break;
-			case 'x': split( (*argv) + 1, examples, MAX_EXAMPLE_COUNT );                   break;
+			case 'x': split( line + 1, examples, MAX_EXAMPLE_COUNT );                   break;
 		}
-
+		free(line);
 	}
 
 	replxx_set_indent_multiline( replxx, indentMultiline );
@@ -235,5 +243,6 @@ int main( int argc, char** argv ) {
 	replxx_history_save( replxx, file );
 	printf( "Exiting Replxx\n" );
 	replxx_end( replxx );
+	return 0;
 }
 

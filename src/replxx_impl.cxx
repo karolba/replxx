@@ -7,6 +7,7 @@
 #include <set>
 #include <optional>
 #include <cassert>
+#include <map>
 
 #ifdef _WIN32
 
@@ -338,13 +339,18 @@ Replxx::ReplxxImpl::ReplxxImpl( FILE*, FILE*, FILE* )
 }
 
 Replxx::ReplxxImpl::~ReplxxImpl( void ) {
-	while ( ! _messages.empty() ) {
-		string const& message( _messages.front() );
-		_terminal.write8( message.data(), static_cast<int>( message.length() ) );
-		_messages.pop_front();
-	}
+	try {
+		while ( ! _messages.empty() ) {
+			string const& message( _messages.front() );
+			_terminal.write8( message.data(), static_cast<int>( message.length() ) );
+			_messages.pop_front();
+		}
 
-	disable_bracketed_paste();
+		disable_bracketed_paste();
+	} catch ( std::runtime_error const& ) {
+		// suppress "write failed" errors (see Terminal::write8()).
+		// in case of i.e. broken pipe.
+	}
 }
 
 Replxx::ACTION_RESULT Replxx::ReplxxImpl::invoke( Replxx::ACTION action_, char32_t code ) {
@@ -655,6 +661,8 @@ char const* Replxx::ReplxxImpl::input( std::string const& prompt ) {
 			return nullptr;
 		}
 
+		/// Always render from beginning of current line. It's to prevent garbage inputs during starting up.
+		_terminal.jump_cursor( 0, 0 );
 		_asyncPrompt.clear();
 		_updatePrompt = false;
 		_prompt.set_text( UnicodeString( prompt ) );
@@ -998,12 +1006,6 @@ void Replxx::ReplxxImpl::refresh_line( HINT_ACTION hintAction_, bool refreshProm
 		_refreshSkipped = true;
 		return;
 	}
-	if ( refreshPrompt_ )
-	{
-		_terminal.jump_cursor( 0, 0 );
-		_prompt.write();
-		_prompt._cursorRowOffset = _prompt._extraLines;
-	}
 	_refreshSkipped = false;
 	render( hintAction_ );
 	handle_hints( hintAction_ );
@@ -1023,10 +1025,16 @@ void Replxx::ReplxxImpl::refresh_line( HINT_ACTION hintAction_, bool refreshProm
 
 	// position at the end of the prompt, clear to end of previous input
 	_terminal.set_cursor_visible( false );
-	_terminal.jump_cursor(
-		_prompt.indentation(), // 0-based on Win32
-		-( _prompt._cursorRowOffset - _prompt._extraLines )
-	);
+	if ( refreshPrompt_ ) {
+		_terminal.jump_cursor( 0, -_prompt._cursorRowOffset );
+		_prompt.write();
+		_prompt._cursorRowOffset = _prompt._extraLines;
+	} else {
+		_terminal.jump_cursor(
+			_prompt.indentation(), // 0-based on Win32
+			-( _prompt._cursorRowOffset - _prompt._extraLines )
+		);
+	}
 	// display the input line
 	if ( _hasNewlines ) {
 		_terminal.clear_screen( Terminal::CLEAR_SCREEN::TO_END );
@@ -1175,26 +1183,39 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 
 	// if we can extend the item, extend it and return to main loop
 	if ( ( longestCommonPrefix > _completionContextLength ) || ( completionsCount == 1 ) ) {
-		UnicodeString const* cand( &_completions[selectedCompletion].text() );
+		UnicodeString const* cand( nullptr );
+		// If _ignoreCase is on, we need to decide what's the proper situation of extending current
+		// prefix. The rule is: 1. if all prefixes are the same, do the extension even though it
+		// might generate upper case characters which loses the convenience of case-insensitive
+		// completion afterwards; 2. if there is a prefix with all lower case characters, do the
+		// extension. User has to adjust the prefix only when there are candidates like `format` and
+		// `FORMAT`, which is reasonable.
 		if ( _ignoreCase && ( _hintSelection == -1 ) ) {
+			std::map<UnicodeString, int> candidate_prefixes;
 			for ( int i( 0 ); i < completionsCount; ++ i ) {
-				if ( _completions[i].text() < *cand ) {
-					cand = &_completions[i].text();
+				candidate_prefixes.emplace(
+					std::piecewise_construct,
+					std::forward_as_tuple( _completions[i].text().get(), longestCommonPrefix ),
+					std::forward_as_tuple( i ));
+				const auto & valid_prefix = candidate_prefixes.rbegin()->first;
+				bool prefix_all_lower(
+					std::none_of( valid_prefix.begin(), valid_prefix.end(), []( char32_t x ) { return iswupper(static_cast<wint_t>(x)); } ) );
+				if (candidate_prefixes.size() == 1 || prefix_all_lower) {
+					cand = &_completions[candidate_prefixes.rbegin()->second].text();
 				}
 			}
+		} else {
+			cand = &_completions[selectedCompletion].text();
 		}
-		_pos -= _completionContextLength;
-		_data.erase( _pos, _completionContextLength );
-		_data.insert( _pos, *cand, 0, longestCommonPrefix );
-		_completionContextLength = longestCommonPrefix;
-		if ( _ignoreCase && ( completionsCount > 1 ) ) {
-			for ( int i( 0 ); i < longestCommonPrefix; ++ i ) {
-				_data[_pos + i] = static_cast<char32_t>( towlower( static_cast<wint_t>( _data[_pos + i] ) ) );
-			}
+		if ( cand ) {
+			_pos -= _completionContextLength;
+			_data.erase( _pos, _completionContextLength );
+			_data.insert( _pos, *cand, 0, longestCommonPrefix );
+			_completionContextLength = longestCommonPrefix;
+			_pos += _completionContextLength;
+			refresh_line();
+			return 0;
 		}
-		_pos += _completionContextLength;
-		refresh_line();
-		return 0;
 	}
 
 	if ( ! showCompletions_ ) {
@@ -1860,7 +1881,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::commit_line( char32_t ) {
 }
 
 int Replxx::ReplxxImpl::prev_newline_position( int pos_ ) const {
-	assert( ( pos_ >= 0 ) && ( pos_ <= _data.length() ) );
+	assert( ( pos_ >= -1 ) && ( pos_ <= _data.length() ) );
 	if ( pos_ == _data.length() ) {
 		-- pos_;
 	}
@@ -2416,17 +2437,21 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::clear_screen( char32_t c ) {
 }
 
 Replxx::ACTION_RESULT Replxx::ReplxxImpl::bracketed_paste( char32_t ) {
+	static const UnicodeString BRACK_PASTE_SUFF( "\033[201~" );
+	static const int BRACK_PASTE_SLEN( BRACK_PASTE_SUFF.length() );
 	UnicodeString buf;
-	while ( char32_t c = _terminal.read_char() ) {
-		if ( c == KEY::PASTE_FINISH ) {
-			break;
-		}
+	while ( char32_t c = read_unicode_character() ) {
 		if ( ( c == '\r' ) || ( c == KEY::control( 'M' ) ) ) {
 			c = '\n';
-		} else if ( c == KEY::control( 'I' ) ) {
+		}
+		else if ( c == KEY::control( 'I' ) ) {
 			c = '\t';
 		}
 		buf.push_back( c );
+		if ( ( c == '~' ) && buf.ends_with( BRACK_PASTE_SUFF.begin(), BRACK_PASTE_SUFF.end() ) ) {
+			buf.erase( buf.length() - BRACK_PASTE_SLEN, BRACK_PASTE_SLEN );
+			break;
+		}
 	}
 	_data.insert( _pos, buf, 0, buf.length() );
 	_pos += buf.length();

@@ -64,7 +64,7 @@ int virtual_render( char32_t const* display_, int size_, int& x_, int& y_, int s
 				continue;
 			}
 			c = display_[pos];
-			if ( c != '[' ) {
+			if ( c != '[' && c != '(' ) {
 				advance_cursor( 2 );
 				continue;
 			}
@@ -88,7 +88,7 @@ int virtual_render( char32_t const* display_, int size_, int& x_, int& y_, int s
 				continue;
 			}
 			c = display_[pos];
-			if ( c != 'm' ) {
+			if ( c != 'm' && c != 'B' ) {
 				advance_cursor( 3 + codeLen );
 				continue;
 			}
